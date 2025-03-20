@@ -8,8 +8,21 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Servir arquivos estáticos
-app.use(express.static('.'));
+// Servir arquivos estáticos com cache-control
+app.use(express.static('.', {
+    maxAge: '1y',
+    setHeaders: (res, path) => {
+        if (path.includes('node_modules')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+    }
+}));
+
+// Servir node_modules especificamente
+app.use('/node_modules', express.static(join(__dirname, 'node_modules'), {
+    maxAge: '1y',
+    immutable: true
+}));
 
 // Rota principal
 app.get('/', (req, res) => {
