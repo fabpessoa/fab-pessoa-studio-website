@@ -17,6 +17,8 @@ class Scene {
         this.targetRotation = 0;
         this.currentRotation = 0;
         this.lights = {};  // Armazenar referências às luzes
+        this.hoveredSphere = null;
+        this.sphereStates = new Map(); // Armazenar estado de cada esfera
         
         this.init();
         this.animate();
@@ -66,6 +68,43 @@ class Scene {
         window.addEventListener('mousemove', (event) => {
             this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Atualizar raycaster
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const intersects = this.raycaster.intersectObjects(this.orbitalObjects);
+            
+            // Resetar estado de hover para todas as esferas
+            this.orbitalObjects.forEach(sphere => {
+                if (!this.sphereStates.has(sphere)) {
+                    this.sphereStates.set(sphere, {
+                        isHovered: false,
+                        targetSpeed: 1,
+                        currentSpeed: 1,
+                        baseSpeed: 1
+                    });
+                }
+            });
+            
+            // Atualizar estado de hover
+            if (intersects.length > 0) {
+                const hoveredSphere = intersects[0].object;
+                const state = this.sphereStates.get(hoveredSphere);
+                state.isHovered = true;
+                state.targetSpeed = 0; // Alvo é parar
+                hoveredSphere.material.emissive.setHex(hoveredSphere.userData.hoverEmissive);
+            }
+        });
+
+        // Resetar estado quando o mouse sai
+        window.addEventListener('mouseout', () => {
+            this.orbitalObjects.forEach(sphere => {
+                const state = this.sphereStates.get(sphere);
+                if (state) {
+                    state.isHovered = false;
+                    state.targetSpeed = 1; // Voltar à velocidade normal
+                }
+                sphere.material.emissive.setHex(sphere.userData.baseEmissive);
+            });
         });
     }
 
@@ -319,33 +358,40 @@ class Scene {
         });
     }
 
-    checkIntersections() {
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        const intersects = this.raycaster.intersectObjects(this.orbitalObjects);
+    updateOrbitalObjects(deltaTime) {
+        const rotationSpeed = 0.2;
         
         this.orbitalObjects.forEach(sphere => {
-            const material = sphere.material;
-            material.emissive.setHex(sphere.userData.baseEmissive);
-        });
+            const state = this.sphereStates.get(sphere);
+            if (!state) return;
 
-        if (intersects.length > 0) {
-            const material = intersects[0].object.material;
-            material.emissive.setHex(intersects[0].object.userData.hoverEmissive);
-        }
+            // Interpolar suavemente entre a velocidade atual e a velocidade alvo
+            state.currentSpeed = THREE.MathUtils.lerp(
+                state.currentSpeed,
+                state.targetSpeed,
+                0.1 // Fator de suavização
+            );
+
+            // Atualizar posição com base na velocidade atual
+            const angle = sphere.userData.initialAngle + performance.now() * 0.001 * rotationSpeed * state.currentSpeed;
+            sphere.position.x = Math.cos(angle) * sphere.userData.radius;
+            sphere.position.z = Math.sin(angle) * sphere.userData.radius;
+
+            // Atualizar emissive com base no hover
+            if (state.isHovered) {
+                sphere.material.emissive.setHex(sphere.userData.hoverEmissive);
+            } else {
+                sphere.material.emissive.setHex(sphere.userData.baseEmissive);
+            }
+        });
     }
 
     animate() {
         requestAnimationFrame(() => this.animate());
 
-        this.checkIntersections();
-
-        const time = Date.now() * 0.0002;
-        this.orbitalObjects.forEach((sphere, index) => {
-            const angle = sphere.userData.initialAngle + time;
-            sphere.position.x = Math.cos(angle) * sphere.userData.radius;
-            sphere.position.z = Math.sin(angle) * sphere.userData.radius;
-        });
-
+        const deltaTime = performance.now() * 0.001;
+        
+        this.updateOrbitalObjects(deltaTime);
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
     }
