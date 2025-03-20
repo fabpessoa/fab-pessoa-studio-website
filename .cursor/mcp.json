@@ -1,0 +1,36 @@
+{
+  "name": "website-backend",
+  "description": "Backend configuration using Supabase",
+  "services": {
+    "supabase": {
+      "type": "supabase",
+      "config": {
+        "project": {
+          "name": "website-backend",
+          "organization": "personal",
+          "region": "us-east-1",
+          "dbPassword": "generate-secure-password",
+          "plan": "free"
+        },
+        "api": {
+          "anonKey": "",
+          "serviceKey": ""
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "latest"
+  },
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-postgres", "postgresql://postgres.vyjufgdgqweerppgcssj:f1A9B7p8e%25ssoa@aws-0-eu-central-2.pooler.supabase.com:5432/postgres"]
+    },
+    "blender": {
+      "command": "uvx",
+      "args": [
+          "blender-mcp"
+      ]
+  }}
+} 

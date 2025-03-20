@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System</title>
+    <style>
+        :root {
+            /* Colors */
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --text-color: #333;
+            --text-secondary: #666;
+            --bg-light: #f8f9fa;
+            --white: #fff;
+
+            /* Typography */
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-base: 16px;
+            --line-height: 1.6;
+
+            /* Spacing */
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 4rem;
+
+            /* Container */
+            --container-max: 1200px;
+            --container-padding: 0 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            line-height: var(--line-height);
+            color: var(--text-color);
+            padding: var(--spacing-lg);
+        }
+
+        .ds-section {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .ds-title {
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .ds-component {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .ds-controls {
+            background: var(--bg-light);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            border-radius: 5px;
+        }
+
+        .ds-control-group {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .ds-control-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .ds-preview {
+            padding: var(--spacing-lg);
+            border: 1px dashed #ccc;
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* Original Components Styles */
+        .container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: var(--container-padding);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-lg);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: var(--primary-hover);
+        }
+    </style>
+    <script>
+        function updateStyles(component, property, value) {
+            const root = document.documentElement;
+            root.style.setProperty(property, value);
+        }
+    </script>
+</head>
+<body>
+    <h1 class="ds-title">Design System</h1>
+    
+    <!-- Navigation Component -->
+    <section class="ds-section">
+        <h2>Navigation</h2>
+        <div class="ds-component">
+            <div class="ds-preview">
+                <nav class="container">
+                    <a href="/" class="logo">Logo</a>
+                    <div class="nav-links">
+                        <a href="#home">Home</a>
+                        <a href="#about">About</a>
+                        <a href="#services">Services</a>
+                        <a href="#contact">Contact</a>
+                    </div>
+                </nav>
+            </div>
+            <div class="ds-controls">
+                <div class="ds-control-group">
+                    <label>Logo Font Size</label>
+                    <input type="range" min="1" max="3" step="0.1" value="1.5" 
+                           title="Adjust logo font size"
+                           onchange="updateStyles('logo', '--logo-size', this.value + 'rem')">
+                </div>
+                <div class="ds-control-group">
+                    <label>Navigation Gap</label>
+                    <input type="range" min="1" max="4" step="0.5" value="2" 
+                           title="Adjust navigation gap spacing"
+                           onchange="updateStyles('nav-links', '--spacing-lg', this.value + 'rem')">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Button Component -->
+    <section class="ds-section">
+        <h2>CTA Button</h2>
+        <div class="ds-component">
+            <div class="ds-preview">
+                <a href="#" class="cta-button">Get in Touch</a>
+            </div>
+            <div class="ds-controls">
+                <div class="ds-control-group">
+                    <label>Primary Color</label>
+                    <input type="color" value="#007bff" 
+                           title="Choose primary button color"
+                           onchange="updateStyles('cta-button', '--primary-color', this.value)">
+                </div>
+                <div class="ds-control-group">
+                    <label>Hover Color</label>
+                    <input type="color" value="#0056b3" 
+                           title="Choose button hover color"
+                           onchange="updateStyles('cta-button', '--primary-hover', this.value)">
+                </div>
+                <div class="ds-control-group">
+                    <label>Border Radius</label>
+                    <input type="range" min="0" max="25" value="5" 
+                           title="Adjust button border radius"
+                           onchange="updateStyles('cta-button', '--button-radius', this.value + 'px')">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Typography -->
+    <section class="ds-section">
+        <h2>Typography</h2>
+        <div class="ds-component">
+            <div class="ds-preview">
+                <h1>Heading 1</h1>
+                <h2>Heading 2</h2>
+                <h3>Heading 3</h3>
+                <p>Regular paragraph text with <a href="#">link</a> example.</p>
+            </div>
+            <div class="ds-controls">
+                <div class="ds-control-group">
+                    <label>Base Font Size</label>
+                    <input type="range" min="14" max="20" value="16" 
+                           title="Adjust base font size"
+                           onchange="updateStyles('typography', '--font-size-base', this.value + 'px')">
+                </div>
+                <div class="ds-control-group">
+                    <label>Line Height</label>
+                    <input type="range" min="1" max="2" step="0.1" value="1.6" 
+                           title="Adjust line height"
+                           onchange="updateStyles('typography', '--line-height', this.value)">
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html> 
