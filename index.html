@@ -154,6 +154,41 @@
             color: white;
             font-family: Arial, sans-serif;
             z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        #light-controls.collapsed {
+            transform: translateX(calc(100% + 20px));
+        }
+
+        #toggle-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1001;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #toggle-panel:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #toggle-panel .icon {
+            transition: transform 0.3s ease;
+        }
+
+        #toggle-panel.panel-open .icon {
+            transform: rotate(180deg);
         }
 
         #light-controls h3 {
@@ -203,6 +238,10 @@
         <!-- Logo será adicionado depois -->
     </header>
     
+    <button id="toggle-panel">
+        Iluminação <span class="icon">▶</span>
+    </button>
+    
     <div id="scene-container"></div>
     <div id="loading">Carregando...</div>
     
@@ -244,5 +283,13 @@
     }
     </script>
     <script type="module" src="/scripts/main.js"></script>
+    <script>
+        document.getElementById('toggle-panel').addEventListener('click', function() {
+            const panel = document.getElementById('light-controls');
+            const button = this;
+            panel.classList.toggle('collapsed');
+            button.classList.toggle('panel-open');
+        });
+    </script>
 </body>
 </html> 
