@@ -1,8 +1,8 @@
--- Enable UUID extension
+-- Habilitar extensão UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create users table
-CREATE TABLE IF NOT EXISTS users (
+-- Criar tabela de usuários 
+CREATE TABLE users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(255),

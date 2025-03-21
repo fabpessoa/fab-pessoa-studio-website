@@ -387,7 +387,7 @@ class Scene {
         // Carregar modelo
         console.log('Carregando modelo da cabeça...');
         loader.load(
-            '/models/busto.glb',
+            '/assets/models/busto.glb',
             (gltf) => {
                 console.log('Modelo carregado com sucesso');
                 this.bustoModel = gltf.scene;
@@ -402,6 +402,10 @@ class Scene {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
+                        if (child.material) {
+                            child.material.metalness = 0.3;
+                            child.material.roughness = 0.7;
+                        }
                     }
                 });
                 
@@ -412,6 +416,36 @@ class Scene {
             },
             (error) => {
                 console.error('Erro ao carregar o modelo:', error);
+                // Tentar caminho alternativo se o primeiro falhar
+                console.log('Tentando caminho alternativo...');
+                loader.load(
+                    '/models/busto.glb',
+                    (gltf) => {
+                        console.log('Modelo carregado com sucesso pelo caminho alternativo');
+                        this.bustoModel = gltf.scene;
+                        this.scene.add(this.bustoModel);
+                        
+                        this.bustoModel.scale.set(3, 3, 3);
+                        this.bustoModel.position.y = -2;
+                        
+                        this.bustoModel.traverse((child) => {
+                            if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                                if (child.material) {
+                                    child.material.metalness = 0.3;
+                                    child.material.roughness = 0.7;
+                                }
+                            }
+                        });
+                        
+                        this.bustoLoaded = true;
+                    },
+                    null,
+                    (secondError) => {
+                        console.error('Também falhou com o caminho alternativo:', secondError);
+                    }
+                );
             }
         );
 
