@@ -26,19 +26,19 @@
         }
 
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
             background: rgba(0, 0, 0, 1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             z-index: 1000;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             padding: 0 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
         }
 
         .logo {
@@ -229,12 +229,31 @@
         .save-button:hover {
             background: #45a049;
         }
+
+        .site-title {
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 150px;
+            font-weight: bold;
+            position: fixed;
+            top: 50%;
+            left: 50px;
+            transform: translateY(-50%);
+            z-index: 10;
+            margin: 0;
+            line-height: 1;
+            text-align: left;
+            pointer-events: none;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <!-- Logo será adicionado depois -->
     </header>
+    
+    <h1 class="site-title">fab.pessoa<br>experiments</h1>
     
     <button id="toggle-panel">Lighting</button>
     
