@@ -1,27 +1,5 @@
 {
-  "name": "website-backend",
-  "description": "Backend configuration using Supabase",
-  "services": {
-    "supabase": {
-      "type": "supabase",
-      "config": {
-        "project": {
-          "name": "website-backend",
-          "organization": "personal",
-          "region": "us-east-1",
-          "dbPassword": "generate-secure-password",
-          "plan": "free"
-        },
-        "api": {
-          "anonKey": "",
-          "serviceKey": ""
-        }
-      }
-    }
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "latest"
-  },
+
   "mcpServers": {
     "supabase": {
       "command": "npx",
@@ -32,5 +10,17 @@
       "args": [
           "blender-mcp"
       ]
-  }}
-} 
+    },
+    "@21st-dev-magic-mcp": {
+      "command": "npx",
+        "args": [
+           "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@21st-dev/magic-mcp",
+          "--config",
+          "\"{\\\"TWENTY_FIRST_API_KEY\\\":\\\"fa41d609b8e941e9ce5afc3878f9f992ee4263a123ad1ff3cb0cb9389ca09e76\\\"}\""
+        ]
+      }
+    }
+  }

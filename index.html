@@ -263,12 +263,13 @@
             position: fixed;
             top: var(--spacing-lg);
             right: var(--spacing-lg);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.95);
             padding: 20px;
             border-radius: 10px;
             z-index: 100;
-            min-width: 200px;
-            transition: transform 0.3s ease;
+            min-width: 250px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .light-controls.collapsed .controls-content {
@@ -278,21 +279,84 @@
         .toggle-button {
             background: transparent;
             border: none;
-            color: var(--color-text);
+            color: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
             width: 100%;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            color: #ffffff;
         }
 
         .toggle-button .material-icons {
             transition: transform 0.3s ease;
+            opacity: 0.9;
         }
 
         .light-controls:not(.collapsed) .toggle-button .material-icons {
             transform: rotate(180deg);
+        }
+
+        .controls-content {
+            margin-top: 15px;
+        }
+
+        .controls-content h3 {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+            accent-color: #ffffff;
+        }
+
+        .control-group .value {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            float: right;
+        }
+
+        .save-button {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .save-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
         }
     </style>
 </head>
