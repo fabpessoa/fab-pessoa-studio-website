@@ -28,9 +28,20 @@
             font-family: var(--font-primary);
         }
 
+        html, body {
+            background-color: white !important; 
+            min-height: 100%;
+            height: 100%;
+        }
+        
         body {
             overflow: hidden;
             background: var(--color-background);
+        }
+        
+        /* Force white background on canvas elements */
+        canvas {
+            background-color: white !important;
         }
 
         #scene-container {
@@ -40,7 +51,7 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            background: transparent;
+            background: white !important;
         }
 
         .header {
@@ -434,6 +445,27 @@
             panel.classList.toggle('collapsed');
         });
         
+        // Function to style canvas aggressively
+        function forceCanvasWhiteBackground() {
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+                console.log('Forcing white background on canvas');
+                // Apply multiple methods to ensure it takes effect
+                canvas.style.setProperty('background-color', 'white', 'important');
+                canvas.setAttribute('style', 'background-color: white !important');
+                // Also try modifying the canvas directly
+                const ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (ctx) {
+                    // For WebGL, we can try clearing with white
+                    ctx.clearColor(1.0, 1.0, 1.0, 1.0);
+                    ctx.clear(ctx.COLOR_BUFFER_BIT);
+                    console.log('Applied WebGL clear with white');
+                }
+            } else {
+                console.log('Canvas not found in forceCanvasWhiteBackground');
+            }
+        }
+        
         // Ensure site title is visible
         document.addEventListener('DOMContentLoaded', function() {
             // Make sure the title is visible
@@ -453,7 +485,46 @@
             // Force white background on all parent elements
             document.documentElement.style.backgroundColor = 'white';
             document.body.style.backgroundColor = 'white';
-            document.getElementById('scene-container').style.backgroundColor = 'transparent';
+            document.getElementById('scene-container').style.backgroundColor = 'white';
+
+            // Try multiple attempts to catch when canvas is created
+            forceCanvasWhiteBackground(); // Try immediately
+            
+            // Then try a few more times with delays
+            setTimeout(forceCanvasWhiteBackground, 500);
+            setTimeout(forceCanvasWhiteBackground, 1000);
+            setTimeout(forceCanvasWhiteBackground, 2000);
+            
+            // Final attempt with full debug
+            setTimeout(() => {
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                    console.log('Canvas found in final check!');
+                    console.log('Canvas background color:', getComputedStyle(canvas).backgroundColor);
+                    console.log('Canvas computed styles:', {
+                        backgroundColor: getComputedStyle(canvas).backgroundColor,
+                        width: getComputedStyle(canvas).width,
+                        height: getComputedStyle(canvas).height,
+                        position: getComputedStyle(canvas).position,
+                        zIndex: getComputedStyle(canvas).zIndex,
+                        display: getComputedStyle(canvas).display,
+                        visibility: getComputedStyle(canvas).visibility
+                    });
+                    
+                    // One last aggressive attempt
+                    canvas.style.setProperty('background-color', 'white', 'important');
+                    // Create an observer to watch for style changes
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.attributeName === 'style') {
+                                console.log('Canvas style changed, reapplying white background');
+                                canvas.style.setProperty('background-color', 'white', 'important');
+                            }
+                        });
+                    });
+                    observer.observe(canvas, { attributes: true });
+                }
+            }, 3000);
         });
     </script>
 </body>

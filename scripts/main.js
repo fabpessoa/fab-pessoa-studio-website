@@ -49,9 +49,15 @@ class Scene {
         
         // Create scene
         this.scene = new THREE.Scene();
-        // Transparent background - ensure truly transparent
-        this.scene.background = null; 
-        console.log('Scene background is set to null for transparency');
+        
+        // Try a different approach for transparency
+        // Using a very light background color instead of null
+        this.scene.background = new THREE.Color(0xffffff);
+        
+        // Add a white fog to ensure background looks white
+        this.scene.fog = new THREE.FogExp2(0xffffff, 0.0025);
+        
+        console.log('Scene background is now white with white fog');
         
         // Create camera
         this.camera = new THREE.PerspectiveCamera(
@@ -65,14 +71,15 @@ class Scene {
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
-            alpha: true,
+            alpha: false, // Changed to false since we're using a white background
             preserveDrawingBuffer: true 
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        // Configure for true transparency (fully transparent)
-        this.renderer.setClearColor(0x000000, 0); // Ensure alpha is 0 (completely transparent)
-        console.log('Renderer clear color set with alpha 0 (transparent)');
+        
+        // Using white as clear color
+        this.renderer.setClearColor(0xffffff, 1);
+        console.log('Renderer clear color set to white with alpha 1');
         
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.0;
@@ -84,9 +91,12 @@ class Scene {
         // Add renderer to DOM
         if (this.container) {
             this.container.appendChild(this.renderer.domElement);
-            // Ensure canvas has transparent background
-            this.renderer.domElement.style.backgroundColor = 'transparent';
-            console.log('Canvas background style set to transparent');
+            // Ensure canvas has white background
+            this.renderer.domElement.style.backgroundColor = '#ffffff';
+            console.log('Canvas background style set to #ffffff');
+            
+            // Force the container to have a white background
+            this.container.style.backgroundColor = '#ffffff';
         } else {
             console.warn('Container not found, adding to body');
             document.body.appendChild(this.renderer.domElement);
@@ -414,6 +424,20 @@ class Scene {
         const currentTime = performance.now();
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
+        
+        // Debug once at the beginning
+        if (!this.debugRan) {
+            console.log('DEBUG: Renderer settings', {
+                alpha: this.renderer.alpha,
+                clearColor: this.renderer.getClearColor(),
+                clearAlpha: this.renderer.getClearAlpha(),
+                sceneBackground: this.scene.background,
+                domElementStyle: {
+                    backgroundColor: this.renderer.domElement.style.backgroundColor
+                }
+            });
+            this.debugRan = true;
+        }
         
         // Update bust if loaded
         if (this.bustoLoaded && this.bustoModel) {
