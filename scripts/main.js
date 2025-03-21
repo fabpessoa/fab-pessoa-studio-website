@@ -357,10 +357,42 @@ class Scene {
     }
 
     init() {
-        console.log('Iniciando configuração...');
-        this.setupLights();
-        this.loadBusto();
+        console.log('Iniciando...');
+        const loadingManager = new THREE.LoadingManager();
+        const loader = new GLTFLoader(loadingManager);
+        
+        // Configurar gerenciador de carregamento
+        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+            const progress = (itemsLoaded / itemsTotal) * 100;
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.textContent = `Carregando... ${Math.min(100, Math.round(progress))}%`;
+            }
+        };
+
+        loadingManager.onLoad = () => {
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+            this.bustoLoaded = true;
+        };
+
+        // Criar esferas orbitais
         this.createOrbitalSpheres();
+
+        // Configurar luzes
+        this.setupLights();
+
+        // Carregar modelo
+        loader.load('/models/busto.glb', (gltf) => {
+            this.bustoModel = gltf.scene;
+            this.scene.add(this.bustoModel);
+            
+            // Ajustar escala e posição do modelo
+            this.bustoModel.scale.set(3, 3, 3);
+            this.bustoModel.position.y = -2;
+        });
 
         window.addEventListener('resize', () => {
             this.camera.aspect = window.innerWidth / window.innerHeight;
