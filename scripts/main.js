@@ -385,20 +385,41 @@ class Scene {
         this.setupLights();
 
         // Carregar modelo
-        loader.load('/models/busto.glb', (gltf) => {
-            this.bustoModel = gltf.scene;
-            this.scene.add(this.bustoModel);
-            
-            // Ajustar escala e posição do modelo
-            this.bustoModel.scale.set(3, 3, 3);
-            this.bustoModel.position.y = -2;
-        });
+        console.log('Carregando modelo da cabeça...');
+        loader.load(
+            '/models/busto.glb',
+            (gltf) => {
+                console.log('Modelo carregado com sucesso');
+                this.bustoModel = gltf.scene;
+                this.scene.add(this.bustoModel);
+                
+                // Ajustar escala e posição do modelo
+                this.bustoModel.scale.set(3, 3, 3);
+                this.bustoModel.position.y = -2;
+                
+                // Ativar sombras para o modelo
+                this.bustoModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+                
+                this.bustoLoaded = true;
+            },
+            (progress) => {
+                console.log('Progresso:', (progress.loaded / progress.total * 100) + '%');
+            },
+            (error) => {
+                console.error('Erro ao carregar o modelo:', error);
+            }
+        );
 
+        // Ajustar câmera e renderizador ao redimensionar
         window.addEventListener('resize', () => {
             this.camera.aspect = window.innerWidth / window.innerHeight;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.updateBustoSize();
         });
     }
 
