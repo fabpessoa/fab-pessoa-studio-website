@@ -358,6 +358,18 @@
             border-color: rgba(255, 255, 255, 0.3);
             color: #ffffff;
         }
+
+        .version-label {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            right: var(--spacing-lg);
+            font-family: var(--font-primary);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+            z-index: 10;
+            letter-spacing: 0.05em;
+        }
     </style>
 </head>
 <body>
@@ -400,6 +412,8 @@
 
     <div id="scene-container"></div>
     <div id="loading">Loading...</div>
+    
+    <div class="version-label">v0.1.0</div>
 
     <script type="importmap">
     {
