@@ -290,14 +290,14 @@ class Scene {
 
         console.log('Atualizando tamanho do busto...');
         
-        // Escala muito maior para garantir visibilidade
-        const scale = 25; // Valor extremamente alto
+        // Manter a escala grande
+        const scale = 25;
         
         // Aplicar escala
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Posicionar no centro da cena
-        this.bustoModel.position.set(0, 0, 0); 
+        // Centralizar na vertical (posição Y = -8 para colocar mais abaixo)
+        this.bustoModel.position.set(0, -8, 0);
         this.bustoModel.visible = true;
         
         console.log('Nova escala aplicada:', scale);
@@ -345,7 +345,7 @@ class Scene {
                 // Aplicar escala grande imediatamente após carregar
                 const scale = 25;
                 this.bustoModel.scale.set(scale, scale, scale);
-                this.bustoModel.position.set(0, 0, 0);
+                this.bustoModel.position.set(0, -8, 0);
                 
                 this.updateBustoSize();
                 if (loadingElement) loadingElement.style.display = 'none';
@@ -377,8 +377,8 @@ class Scene {
                         this.scene.add(this.bustoModel);
                         
                         // Ajustar escala e posição do modelo
-                        this.bustoModel.scale.set(6, 6, 6); // Aumentando de 3 para 6
-                        this.bustoModel.position.y = -2;
+                        this.bustoModel.scale.set(25, 25, 25);
+                        this.bustoModel.position.set(0, -8, 0);
                         
                         this.bustoModel.traverse((child) => {
                             if (child.isMesh) {
@@ -421,8 +421,8 @@ class Scene {
                                 this.bustoModel = gltf.scene;
                                 this.scene.add(this.bustoModel);
                                 
-                                this.bustoModel.scale.set(6, 6, 6); // Aumentando de 3 para 6
-                                this.bustoModel.position.y = -2;
+                                this.bustoModel.scale.set(25, 25, 25);
+                                this.bustoModel.position.set(0, -8, 0);
                                 
                                 this.bustoModel.traverse((child) => {
                                     if (child.isMesh) {
