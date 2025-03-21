@@ -83,13 +83,16 @@ class Scene {
             
             // Resetar estado de hover para todas as esferas
             this.orbitalObjects.forEach(sphere => {
-                if (!this.sphereStates.has(sphere)) {
+                const state = this.sphereStates.get(sphere);
+                if (!state) {
                     this.sphereStates.set(sphere, {
                         isHovered: false,
                         targetSpeed: 1,
-                        currentSpeed: 1,
-                        baseSpeed: 1
+                        currentSpeed: 1
                     });
+                } else {
+                    state.isHovered = false;
+                    state.targetSpeed = 1;
                 }
             });
             
@@ -97,18 +100,19 @@ class Scene {
             if (intersects.length > 0) {
                 const hoveredSphere = intersects[0].object;
                 const state = this.sphereStates.get(hoveredSphere);
-                state.isHovered = true;
-                state.targetSpeed = 0; // Alvo é parar
+                if (state) {
+                    state.isHovered = true;
+                    state.targetSpeed = 0;
+                }
             }
         });
 
-        // Resetar estado quando o mouse sai
         window.addEventListener('mouseout', () => {
             this.orbitalObjects.forEach(sphere => {
                 const state = this.sphereStates.get(sphere);
                 if (state) {
                     state.isHovered = false;
-                    state.targetSpeed = 1; // Voltar à velocidade normal
+                    state.targetSpeed = 1;
                 }
             });
         });
@@ -377,7 +381,7 @@ class Scene {
             state.currentSpeed = THREE.MathUtils.lerp(
                 state.currentSpeed,
                 state.targetSpeed,
-                0.05 // Fator de suavização mais lento
+                0.03 // Fator de suavização mais lento para transição mais suave
             );
 
             // Atualizar posição com base na velocidade atual

@@ -270,17 +270,41 @@
             min-width: 200px;
             transition: transform 0.3s ease;
         }
+
+        .light-controls.collapsed .controls-content {
+            display: none;
+        }
+
+        .toggle-button {
+            background: transparent;
+            border: none;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            width: 100%;
+        }
+
+        .toggle-button .material-icons {
+            transition: transform 0.3s ease;
+        }
+
+        .light-controls:not(.collapsed) .toggle-button .material-icons {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
     <h1 class="site-title">fab.pessoa<br>experiments</h1>
     
-    <div class="light-controls">
-        <button id="toggle-panel" class="toggle-button">
+    <div class="light-controls collapsed">
+        <button class="toggle-button">
             <span class="material-icons">expand_more</span>
             Lighting
         </button>
-        <div id="controls-content" class="controls-content">
+        <div class="controls-content">
             <h3>Lighting Controls</h3>
             <div class="control-group">
                 <label>Main Light (Right)
@@ -323,11 +347,9 @@
     </script>
     <script type="module" src="/scripts/main.js"></script>
     <script>
-        document.getElementById('toggle-panel').addEventListener('click', function() {
-            const panel = document.getElementById('light-controls');
-            const button = this;
+        document.querySelector('.toggle-button').addEventListener('click', function() {
+            const panel = this.closest('.light-controls');
             panel.classList.toggle('collapsed');
-            button.classList.toggle('panel-open');
         });
     </script>
 </body>
