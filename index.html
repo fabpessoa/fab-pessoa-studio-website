@@ -15,8 +15,8 @@
             --spacing-sm: 10px;
             --spacing-md: 20px;
             --spacing-lg: 50px;
-            --color-background: #ffffff;
-            --color-text: #333333;
+            --color-background: #121212;
+            --color-text: #fafafa;
             --color-primary: #4CAF50;
             --color-primary-hover: #45a049;
         }
@@ -29,7 +29,7 @@
         }
 
         html, body {
-            background-color: white !important; 
+            background-color: var(--color-background) !important; 
             min-height: 100%;
             height: 100%;
         }
@@ -39,9 +39,9 @@
             background: var(--color-background);
         }
         
-        /* Force white background on canvas elements */
+        /* Force transparent background on canvas elements */
         canvas {
-            background-color: white !important;
+            background-color: transparent !important;
         }
 
         #scene-container {
@@ -51,7 +51,7 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            background: white !important;
+            background: transparent !important;
         }
 
         .header {
@@ -270,21 +270,21 @@
             pointer-events: none;
             opacity: 1;
             z-index: 2;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
         .light-controls {
             position: fixed;
             top: var(--spacing-lg);
             right: var(--spacing-lg);
-            background: rgba(245, 245, 245, 0.95);
+            background: rgba(0, 0, 0, 0.95);
             padding: 20px;
             border-radius: 10px;
             z-index: 100;
             min-width: 250px;
             transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            color: #333;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--color-text);
         }
 
         .light-controls.collapsed .controls-content {
@@ -294,7 +294,7 @@
         .toggle-button {
             background: transparent;
             border: none;
-            color: rgba(0, 0, 0, 0.9);
+            color: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -307,7 +307,7 @@
         }
 
         .toggle-button:hover {
-            color: #000000;
+            color: #ffffff;
         }
 
         .toggle-button .material-icons {
@@ -324,7 +324,7 @@
         }
 
         .controls-content h3 {
-            color: rgba(0, 0, 0, 0.9);
+            color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 20px;
@@ -337,7 +337,7 @@
 
         .control-group label {
             display: block;
-            color: rgba(0, 0, 0, 0.8);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 12px;
             margin-bottom: 8px;
             letter-spacing: 0.05em;
@@ -346,11 +346,11 @@
         .control-group input[type="range"] {
             width: 100%;
             margin-bottom: 5px;
-            accent-color: #333333;
+            accent-color: #ffffff;
         }
 
         .control-group .value {
-            color: rgba(0, 0, 0, 0.6);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 11px;
             float: right;
         }
@@ -358,10 +358,10 @@
         .save-button {
             width: 100%;
             padding: 10px;
-            background: rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
-            color: rgba(0, 0, 0, 0.9);
+            color: rgba(255, 255, 255, 0.9);
             font-size: 13px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -369,9 +369,9 @@
         }
 
         .save-button:hover {
-            background: rgba(0, 0, 0, 0.15);
-            border-color: rgba(0, 0, 0, 0.3);
-            color: #000000;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
         }
 
         .version-label {
@@ -380,7 +380,7 @@
             right: var(--spacing-lg);
             font-family: var(--font-primary);
             font-size: 12px;
-            color: rgba(0, 0, 0, 0.4);
+            color: rgba(255, 255, 255, 0.4);
             pointer-events: none;
             z-index: 10;
             letter-spacing: 0.05em;
@@ -445,24 +445,14 @@
             panel.classList.toggle('collapsed');
         });
         
-        // Function to style canvas aggressively
-        function forceCanvasWhiteBackground() {
+        // Function to ensure canvas is transparent
+        function ensureCanvasTransparency() {
             const canvas = document.querySelector('canvas');
             if (canvas) {
-                console.log('Forcing white background on canvas');
-                // Apply multiple methods to ensure it takes effect
-                canvas.style.setProperty('background-color', 'white', 'important');
-                canvas.setAttribute('style', 'background-color: white !important');
-                // Also try modifying the canvas directly
-                const ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (ctx) {
-                    // For WebGL, we can try clearing with white
-                    ctx.clearColor(1.0, 1.0, 1.0, 1.0);
-                    ctx.clear(ctx.COLOR_BUFFER_BIT);
-                    console.log('Applied WebGL clear with white');
-                }
-            } else {
-                console.log('Canvas not found in forceCanvasWhiteBackground');
+                console.log('Ensuring canvas transparency');
+                // Apply transparency
+                canvas.style.setProperty('background-color', 'transparent', 'important');
+                canvas.setAttribute('style', 'background-color: transparent !important');
             }
         }
         
@@ -482,49 +472,35 @@
             console.log('Body background:', getComputedStyle(document.body).backgroundColor);
             console.log('Scene container background:', getComputedStyle(document.getElementById('scene-container')).backgroundColor);
             
-            // Force white background on all parent elements
-            document.documentElement.style.backgroundColor = 'white';
-            document.body.style.backgroundColor = 'white';
-            document.getElementById('scene-container').style.backgroundColor = 'white';
-
-            // Try multiple attempts to catch when canvas is created
-            forceCanvasWhiteBackground(); // Try immediately
+            // Ensure proper background colors
+            document.documentElement.style.backgroundColor = '#121212';
+            document.body.style.backgroundColor = '#121212';
+            document.getElementById('scene-container').style.backgroundColor = 'transparent';
             
-            // Then try a few more times with delays
-            setTimeout(forceCanvasWhiteBackground, 500);
-            setTimeout(forceCanvasWhiteBackground, 1000);
-            setTimeout(forceCanvasWhiteBackground, 2000);
+            // Try multiple attempts to ensure canvas transparency
+            ensureCanvasTransparency(); // Try immediately
+            setTimeout(ensureCanvasTransparency, 500);
+            setTimeout(ensureCanvasTransparency, 1000);
             
-            // Final attempt with full debug
+            // Final check
             setTimeout(() => {
                 const canvas = document.querySelector('canvas');
                 if (canvas) {
-                    console.log('Canvas found in final check!');
                     console.log('Canvas background color:', getComputedStyle(canvas).backgroundColor);
-                    console.log('Canvas computed styles:', {
-                        backgroundColor: getComputedStyle(canvas).backgroundColor,
-                        width: getComputedStyle(canvas).width,
-                        height: getComputedStyle(canvas).height,
-                        position: getComputedStyle(canvas).position,
-                        zIndex: getComputedStyle(canvas).zIndex,
-                        display: getComputedStyle(canvas).display,
-                        visibility: getComputedStyle(canvas).visibility
-                    });
+                    // Ensure canvas remains transparent
+                    canvas.style.setProperty('background-color', 'transparent', 'important');
                     
-                    // One last aggressive attempt
-                    canvas.style.setProperty('background-color', 'white', 'important');
-                    // Create an observer to watch for style changes
+                    // Create an observer to maintain transparency
                     const observer = new MutationObserver((mutations) => {
                         mutations.forEach((mutation) => {
                             if (mutation.attributeName === 'style') {
-                                console.log('Canvas style changed, reapplying white background');
-                                canvas.style.setProperty('background-color', 'white', 'important');
+                                canvas.style.setProperty('background-color', 'transparent', 'important');
                             }
                         });
                     });
                     observer.observe(canvas, { attributes: true });
                 }
-            }, 3000);
+            }, 2000);
         });
     </script>
 </body>
