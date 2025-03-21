@@ -15,7 +15,7 @@
             --spacing-sm: 10px;
             --spacing-md: 20px;
             --spacing-lg: 50px;
-            --color-background: #121212;
+            --color-background: #000000;
             --color-text: #fafafa;
             --color-primary: #4CAF50;
             --color-primary-hover: #45a049;
@@ -269,7 +269,7 @@
             text-align: left;
             pointer-events: none;
             opacity: 1;
-            z-index: 2;
+            z-index: 1;
             text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
@@ -473,8 +473,8 @@
             console.log('Scene container background:', getComputedStyle(document.getElementById('scene-container')).backgroundColor);
             
             // Ensure proper background colors
-            document.documentElement.style.backgroundColor = '#121212';
-            document.body.style.backgroundColor = '#121212';
+            document.documentElement.style.backgroundColor = '#000000';
+            document.body.style.backgroundColor = '#000000';
             document.getElementById('scene-container').style.backgroundColor = 'transparent';
             
             // Try multiple attempts to ensure canvas transparency
