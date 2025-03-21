@@ -139,14 +139,25 @@ class Scene {
     }
 
     setupLights() {
-        console.log('Configurando luzes...');
+        console.log('Setting up lights...');
         
-        // Luz ambiente suave para iluminação base
-        this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.15);
+        // Carregar configurações salvas ou usar valores padrão
+        const savedSettings = localStorage.getItem('lightSettings');
+        const defaultSettings = {
+            mainLight: 3,
+            fillLight: 0.2,
+            ambientLight: 0.15,
+            rimLight: 0.5
+        };
+        
+        const settings = savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+        
+        // Ambient light for base illumination
+        this.lights.ambient = new THREE.AmbientLight(0xffffff, settings.ambientLight);
         this.scene.add(this.lights.ambient);
 
-        // Luz principal forte do lado direito
-        this.lights.main = new THREE.SpotLight(0xffffff, 3);
+        // Strong main light from the right
+        this.lights.main = new THREE.SpotLight(0xffffff, settings.mainLight);
         this.lights.main.position.set(5, 2, 2);
         this.lights.main.angle = Math.PI / 6;
         this.lights.main.penumbra = 0.2;
@@ -158,26 +169,26 @@ class Scene {
         this.lights.main.shadow.mapSize.height = 2048;
         this.scene.add(this.lights.main);
 
-        // Luz de preenchimento suave do lado esquerdo
-        this.lights.fill = new THREE.DirectionalLight(0xffffff, 0.2);
+        // Soft fill light from the left
+        this.lights.fill = new THREE.DirectionalLight(0xffffff, settings.fillLight);
         this.lights.fill.position.set(-4, 0, 2);
         this.scene.add(this.lights.fill);
 
-        // Luz de contorno sutil
-        this.lights.rim = new THREE.SpotLight(0xffffff, 0.5);
+        // Subtle rim light
+        this.lights.rim = new THREE.SpotLight(0xffffff, settings.rimLight);
         this.lights.rim.position.set(-2, 4, -3);
         this.lights.rim.angle = Math.PI / 5;
         this.lights.rim.penumbra = 0.8;
         this.scene.add(this.lights.rim);
 
-        // Luz de fundo sutil para separar do background
+        // Subtle back light to separate from background
         this.lights.back = new THREE.DirectionalLight(0xffffff, 0.1);
         this.lights.back.position.set(0, 0, -5);
         this.scene.add(this.lights.back);
     }
 
     setupLightControls() {
-        // Configurar os controles de luz
+        // Set up light controls
         const updateValue = (element, value) => {
             const valueSpan = element.parentElement.querySelector('.value');
             if (valueSpan) {
@@ -185,38 +196,58 @@ class Scene {
             }
         };
 
-        // Carregar configurações salvas
-        this.loadLightSettings();
+        // Load saved settings
+        const savedSettings = localStorage.getItem('lightSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            
+            // Update sliders and lights
+            const elements = {
+                mainLight: { slider: document.getElementById('mainLight'), light: this.lights.main },
+                fillLight: { slider: document.getElementById('fillLight'), light: this.lights.fill },
+                ambientLight: { slider: document.getElementById('ambientLight'), light: this.lights.ambient },
+                rimLight: { slider: document.getElementById('rimLight'), light: this.lights.rim }
+            };
 
-        // Luz Principal
+            Object.entries(settings).forEach(([key, value]) => {
+                const element = elements[key];
+                if (element && element.slider && element.light) {
+                    element.slider.value = value;
+                    element.light.intensity = value;
+                    updateValue(element.slider, value);
+                }
+            });
+        }
+
+        // Main Light
         const mainLightSlider = document.getElementById('mainLight');
         mainLightSlider.addEventListener('input', (e) => {
             this.lights.main.intensity = parseFloat(e.target.value);
             updateValue(mainLightSlider, e.target.value);
         });
 
-        // Luz de Preenchimento
+        // Fill Light
         const fillLightSlider = document.getElementById('fillLight');
         fillLightSlider.addEventListener('input', (e) => {
             this.lights.fill.intensity = parseFloat(e.target.value);
             updateValue(fillLightSlider, e.target.value);
         });
 
-        // Luz Ambiente
+        // Ambient Light
         const ambientLightSlider = document.getElementById('ambientLight');
         ambientLightSlider.addEventListener('input', (e) => {
             this.lights.ambient.intensity = parseFloat(e.target.value);
             updateValue(ambientLightSlider, e.target.value);
         });
 
-        // Luz de Contorno
+        // Rim Light
         const rimLightSlider = document.getElementById('rimLight');
         rimLightSlider.addEventListener('input', (e) => {
             this.lights.rim.intensity = parseFloat(e.target.value);
             updateValue(rimLightSlider, e.target.value);
         });
 
-        // Botão Salvar
+        // Save Button
         const saveButton = document.getElementById('saveLightSettings');
         saveButton.addEventListener('click', () => this.saveLightSettings());
     }
@@ -231,43 +262,16 @@ class Scene {
 
         localStorage.setItem('lightSettings', JSON.stringify(settings));
         
-        // Feedback visual
+        // Visual feedback
         const saveButton = document.getElementById('saveLightSettings');
         const originalText = saveButton.textContent;
-        saveButton.textContent = 'Configurações Salvas!';
+        saveButton.textContent = 'Settings Saved!';
         saveButton.style.background = '#45a049';
         
         setTimeout(() => {
             saveButton.textContent = originalText;
             saveButton.style.background = '#4CAF50';
         }, 2000);
-    }
-
-    loadLightSettings() {
-        const savedSettings = localStorage.getItem('lightSettings');
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            
-            // Atualizar sliders e luzes
-            const elements = {
-                mainLight: { slider: document.getElementById('mainLight'), light: this.lights.main },
-                fillLight: { slider: document.getElementById('fillLight'), light: this.lights.fill },
-                ambientLight: { slider: document.getElementById('ambientLight'), light: this.lights.ambient },
-                rimLight: { slider: document.getElementById('rimLight'), light: this.lights.rim }
-            };
-
-            Object.entries(settings).forEach(([key, value]) => {
-                const element = elements[key];
-                if (element && element.slider && element.light) {
-                    element.slider.value = value;
-                    element.light.intensity = value;
-                    const valueSpan = element.slider.parentElement.querySelector('.value');
-                    if (valueSpan) {
-                        valueSpan.textContent = parseFloat(value).toFixed(2);
-                    }
-                }
-            });
-        }
     }
 
     updateBustoSize() {
