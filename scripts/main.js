@@ -4,12 +4,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 class Scene {
     constructor() {
-        console.log('Iniciando cena...');
+        console.log('Initializing scene...');
         
-        // Configuração de lastTime para animação
+        // Animation timing configuration
         this.lastTime = performance.now();
         
-        // Inicializar variáveis
+        // Initialize variables
         this.container = document.getElementById('scene-container');
         this.orbitalObjects = [];
         this.bustoLoaded = false;
@@ -17,19 +17,19 @@ class Scene {
         this.mouse = new THREE.Vector2();
         this.targetRotation = 0;
         this.currentRotation = 0;
-        this.lights = {};  // Armazenar referências às luzes
+        this.lights = {};  // Store light references
         this.hoveredSphere = null;
-        this.sphereStates = new Map(); // Armazenar estado de cada esfera
+        this.sphereStates = new Map(); // Store state of each sphere
         
-        // Variáveis para a animação da cabeça
+        // Variables for head animation
         this.headAnimation = {
-            time: 0,           // Tempo decorrido para a animação
-            speed: 0.5,        // Velocidade da animação
-            amplitude: 0.05,   // Amplitude máxima em radianos
-            active: true       // Controle para ativar/desativar a animação
+            time: 0,           // Animation elapsed time
+            speed: 0.5,        // Animation speed
+            amplitude: 0.05,   // Maximum amplitude in radians
+            active: true       // Control to enable/disable animation
         };
         
-        // Configuração inicial
+        // Initial setup
         this.initScene();
         this.setupLights();
         this.setupControls();
@@ -38,21 +38,21 @@ class Scene {
         this.setupEventListeners();
         this.setupLightControls();
         
-        // Iniciar loop de renderização
+        // Start rendering loop
         this.animate();
         
         console.log('Scene initialized');
     }
 
     initScene() {
-        console.log('Inicializando cena...');
+        console.log('Initializing scene...');
         
-        // Criar cena
+        // Create scene
         this.scene = new THREE.Scene();
-        // Fundo transparente
+        // Transparent background
         this.scene.background = null;
         
-        // Criar câmera
+        // Create camera
         this.camera = new THREE.PerspectiveCamera(
             45,
             window.innerWidth / window.innerHeight,
@@ -61,31 +61,31 @@ class Scene {
         );
         this.camera.position.z = 15;
         
-        // Criar renderer com alpha para transparência
+        // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true 
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        // Configurar para transparência
+        // Configure for transparency
         this.renderer.setClearColor(0x000000, 0);
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         
-        // Adicionar renderer ao DOM
+        // Add renderer to DOM
         if (this.container) {
             this.container.appendChild(this.renderer.domElement);
         } else {
-            console.warn('Container não encontrado, adicionando ao body');
+            console.warn('Container not found, adding to body');
             document.body.appendChild(this.renderer.domElement);
         }
     }
 
     setupControls() {
-        console.log('Configurando controles...');
+        console.log('Setting up controls...');
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
@@ -94,35 +94,35 @@ class Scene {
     }
 
     setupEventListeners() {
-        console.log('Configurando event listeners...');
+        console.log('Setting up event listeners...');
         
-        // Redimensionar canvas quando a janela for redimensionada
+        // Resize canvas when window is resized
         window.addEventListener('resize', () => {
             this.resize();
         });
 
-        // Toggle do painel de controle de iluminação
-        // Já está sendo configurado diretamente no HTML
+        // Toggle lighting control panel
+        // Already configured directly in HTML
     }
 
     createOrbitalSpheres(count = 6) {
-        console.log('Criando esferas orbitais com textura de alumínio escovado...');
+        console.log('Creating orbital spheres with brushed aluminum texture...');
         const radius = 5;
         const sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
         
-        // Material de alumínio escovado claro
+        // Light brushed metal material
         const brushedMetalMaterial = new THREE.MeshStandardMaterial({
-            color: 0xDDDDDD, // Cor prata claro para alumínio
+            color: 0xDDDDDD, // Light silver color for aluminum
             metalness: 0.85,
             roughness: 0.2,
             envMapIntensity: 1.5
         });
         
-        // Criar ambiente de reflexão
+        // Create reflection environment
         const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
         pmremGenerator.compileEquirectangularShader();
         
-        // Configurar cena para reflexões
+        // Configure scene for reflections
         this.scene.environment = pmremGenerator.fromScene(new THREE.Scene()).texture;
         
         for (let i = 0; i < count; i++) {
@@ -134,7 +134,7 @@ class Scene {
             sphere.userData = { 
                 initialAngle: angle,
                 radius: radius,
-                rotationSpeed: 0.2 // Velocidade constante
+                rotationSpeed: 0.2 // Constant speed
             };
             
             this.orbitalObjects.push(sphere);
@@ -289,45 +289,45 @@ class Scene {
     }
 
     updateBustoSize() {
-        // Ajustar tamanho do busto
+        // Adjust bust size
         if (!this.bustoModel) {
-            console.log('Não é possível atualizar o busto: modelo não encontrado');
+            console.log('Cannot update bust: model not found');
             return;
         }
         
-        // Aplicar escala
+        // Apply scale
         this.bustoModel.scale.set(25, 25, 25);
         
-        // Centralizar (posição Y negativa para baixar o busto)
+        // Center (negative Y position to lower the bust)
         this.bustoModel.position.set(0, -8, 0);
         
-        console.log('Tamanho do busto atualizado:');
-        console.log('- Escala:', this.bustoModel.scale);
-        console.log('- Posição:', this.bustoModel.position);
+        console.log('Bust size updated:');
+        console.log('- Scale:', this.bustoModel.scale);
+        console.log('- Position:', this.bustoModel.position);
     }
 
     loadModels() {
-        console.log('Carregando modelos...');
+        console.log('Loading models...');
         this.loadBusto();
     }
     
     loadBusto() {
-        console.log('Carregando modelo do busto...');
+        console.log('Loading bust model...');
         this.bustoLoaded = false;
         
         const loadingElement = document.getElementById('loading');
         if (loadingElement) loadingElement.style.display = 'block';
         
-        console.log('Tentando carregar busto de: /assets/models/busto.glb');
+        console.log('Trying to load bust from: /assets/models/busto.glb');
         
         const loader = new GLTFLoader();
         loader.load(
             '/assets/models/busto.glb',
             (gltf) => {
-                console.log('SUCESSO! Busto carregado com sucesso');
+                console.log('SUCCESS! Bust loaded successfully');
                 this.bustoModel = gltf.scene;
                 
-                // Configurar materiais
+                // Configure materials
                 this.bustoModel.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
@@ -339,36 +339,36 @@ class Scene {
                     }
                 });
                 
-                // Adicionar à cena
+                // Add to scene
                 this.scene.add(this.bustoModel);
                 
-                // Configurar escala e posição
+                // Configure scale and position
                 this.bustoModel.scale.set(25, 25, 25);
                 this.bustoModel.position.set(0, -8, 0);
                 
-                // Marcar como carregado
+                // Mark as loaded
                 this.bustoLoaded = true;
                 
-                // Esconder loader
+                // Hide loader
                 if (loadingElement) loadingElement.style.display = 'none';
                 
-                console.log('Busto adicionado à cena com sucesso');
+                console.log('Bust successfully added to scene');
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
-                if (loadingElement) loadingElement.textContent = `Carregando... ${percent}%`;
-                console.log(`Progresso: ${percent}%`);
+                if (loadingElement) loadingElement.textContent = `Loading... ${percent}%`;
+                console.log(`Progress: ${percent}%`);
             },
             (error) => {
-                console.error('Erro ao carregar o modelo:', error);
-                if (loadingElement) loadingElement.textContent = 'Erro ao carregar o modelo';
+                console.error('Error loading model:', error);
+                if (loadingElement) loadingElement.textContent = 'Error loading model';
                 
                 console.log('------------------------------');
-                console.log('DEPURAÇÃO: FALHA NO CARREGAMENTO');
-                console.log('Possíveis causas:');
-                console.log('1. CORS impede acesso ao arquivo');
-                console.log('2. Problema na configuração do servidor');
-                console.log('3. Arquivo está corrompido');
+                console.log('DEBUG: LOADING FAILURE');
+                console.log('Possible causes:');
+                console.log('1. CORS preventing file access');
+                console.log('2. Server configuration issue');
+                console.log('3. File is corrupted');
                 console.log('------------------------------');
             }
         );
@@ -377,7 +377,7 @@ class Scene {
     updateOrbitalObjects() {
         if (!this.orbitalObjects || this.orbitalObjects.length === 0) return;
         
-        const time = performance.now() * 0.001; // Tempo em segundos
+        const time = performance.now() * 0.001; // Time in seconds
         
         this.orbitalObjects.forEach(obj => {
             if (!obj.userData) return;
@@ -388,10 +388,10 @@ class Scene {
             obj.position.x = Math.cos(angle) * radius;
             obj.position.z = Math.sin(angle) * radius;
             
-            // Pequena flutuação vertical
+            // Small vertical fluctuation
             obj.position.y = Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
             
-            // Rotação das esferas sobre seu próprio eixo
+            // Rotation of spheres on their own axis
             obj.rotation.y += 0.01;
             obj.rotation.x += 0.005;
         });
@@ -404,32 +404,32 @@ class Scene {
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
         
-        // Atualizar busto se estiver carregado
+        // Update bust if loaded
         if (this.bustoLoaded && this.bustoModel) {
             this.updateBustoRotation(currentTime);
         }
         
-        // Atualizar esferas orbitais
+        // Update orbital spheres
         this.updateOrbitalObjects();
         
-        // Atualizar controles
+        // Update controls
         if (this.controls) {
             this.controls.update();
         }
         
-        // Renderizar cena
+        // Render scene
         this.renderer.render(this.scene, this.camera);
     }
 
     updateBustoRotation(currentTime) {
-        // Verificar se o busto tem animação ativa
+        // Check if bust has active animation
         if (!this.headAnimation || !this.headAnimation.active) return;
         
-        // Calcular rotação usando seno para movimento suave e contínuo
+        // Calculate rotation using sine for smooth and continuous movement
         const time = currentTime * 0.001 * this.headAnimation.speed;
         const rotation = Math.sin(time) * this.headAnimation.amplitude;
         
-        // Aplicar rotação
+        // Apply rotation
         this.bustoModel.rotation.y = rotation;
     }
     
@@ -457,8 +457,8 @@ class Scene {
     }
 }
 
-// Aguardar o DOM estar pronto
+// Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM carregado, iniciando aplicação...');
+    console.log('DOM loaded, starting application...');
     new Scene();
 }); 
