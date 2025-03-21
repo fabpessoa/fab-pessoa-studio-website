@@ -283,48 +283,43 @@ class Scene {
     }
 
     updateBustoSize() {
-        if (!this.bustoLoaded || !this.bustoModel) return;
+        if (!this.bustoLoaded || !this.bustoModel) {
+            console.log('Não é possível atualizar o tamanho do busto: modelo não carregado');
+            return;
+        }
 
-        const isMobile = window.innerWidth <= 768;
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-
-        // Calcular a caixa delimitadora do modelo
-        const box = new THREE.Box3().setFromObject(this.bustoModel);
-        const size = box.getSize(new THREE.Vector3());
-
-        // Calcular o fator de escala desejado
-        let targetHeight = viewportHeight * 0.8;
-        let targetWidth = isMobile ? viewportWidth * 0.8 : viewportWidth * 0.4;
+        console.log('Atualizando tamanho do busto...');
         
-        // Converter unidades de pixel para unidades da cena (considerando a posição da câmera)
-        const fov = this.camera.fov * Math.PI / 180;
-        const targetHeightScene = 2 * Math.tan(fov / 2) * this.camera.position.z * 0.8;
-        const targetWidthScene = targetHeightScene * (targetWidth / targetHeight);
-
-        // Calcular fatores de escala
-        const scaleY = targetHeightScene / size.y;
-        const scaleX = targetWidthScene / size.x;
+        // Configuração básica
+        this.bustoModel.position.set(0, -2, 0); // Centralizar horizontalmente
+        this.bustoModel.scale.set(3, 3, 3);     // Escala fixa inicial
+        this.bustoModel.visible = true;         // Garantir que esteja visível
         
-        // Usar o menor fator de escala para manter a proporção
-        const scale = Math.min(scaleX, scaleY);
-        
-        this.bustoModel.scale.set(scale, scale, scale);
-
-        // Centralizar o modelo após o redimensionamento
-        const newBox = new THREE.Box3().setFromObject(this.bustoModel);
-        const center = newBox.getCenter(new THREE.Vector3());
-        this.bustoModel.position.sub(center);
+        console.log('Posição atualizada:', this.bustoModel.position);
+        console.log('Escala atualizada:', this.bustoModel.scale);
     }
 
     loadBusto() {
         console.log('Carregando busto...');
+        
+        // Adicionar mensagem de depuração clara
+        console.log('------------------------------');
+        console.log('DEPURAÇÃO: INICIANDO CARREGAMENTO DO MODELO');
+        console.log('Caminhos a tentar:');
+        console.log('1. /assets/models/busto.glb');
+        console.log('2. /models/busto.glb');
+        console.log('3. models/busto.glb (sem barra)');
+        console.log('------------------------------');
+        
         const loader = new GLTFLoader();
         
+        const loadingElement = document.getElementById('loading');
+        
+        // Tentar caminho principal
         loader.load(
             '/assets/models/busto.glb',
             (gltf) => {
-                console.log('Busto carregado com sucesso!');
+                console.log('SUCESSO! Busto carregado pelo caminho: /assets/models/busto.glb');
                 const model = gltf.scene;
                 this.bustoModel = model;
                 
@@ -342,86 +337,31 @@ class Scene {
                 this.scene.add(model);
                 this.bustoLoaded = true;
                 this.updateBustoSize();
-                document.getElementById('loading').style.display = 'none';
+                if (loadingElement) loadingElement.style.display = 'none';
+                
+                console.log('Modelo foi adicionado à cena:');
+                console.log('- Posição:', this.bustoModel.position);
+                console.log('- Escala:', this.bustoModel.scale);
+                console.log('- Visível:', this.bustoModel.visible);
             },
             (progress) => {
                 const percent = (progress.loaded / progress.total * 100).toFixed(2);
-                document.getElementById('loading').textContent = `Carregando... ${percent}%`;
-                console.log('Progresso:', percent + '%');
+                if (loadingElement) loadingElement.textContent = `Carregando... ${percent}%`;
+                console.log('Progresso caminho 1:', percent + '%');
             },
             (error) => {
-                console.error('Erro ao carregar o modelo:', error);
-                document.getElementById('loading').textContent = 'Erro ao carregar o modelo';
-            }
-        );
-    }
-
-    init() {
-        console.log('Iniciando...');
-        const loadingManager = new THREE.LoadingManager();
-        const loader = new GLTFLoader(loadingManager);
-        
-        // Configurar gerenciador de carregamento
-        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-            const progress = (itemsLoaded / itemsTotal) * 100;
-            const loadingElement = document.getElementById('loading');
-            if (loadingElement) {
-                loadingElement.textContent = `Carregando... ${Math.min(100, Math.round(progress))}%`;
-            }
-        };
-
-        loadingManager.onLoad = () => {
-            const loadingElement = document.getElementById('loading');
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            this.bustoLoaded = true;
-        };
-
-        // Criar esferas orbitais
-        this.createOrbitalSpheres();
-
-        // Configurar luzes
-        this.setupLights();
-
-        // Carregar modelo
-        console.log('Carregando modelo da cabeça...');
-        loader.load(
-            '/assets/models/busto.glb',
-            (gltf) => {
-                console.log('Modelo carregado com sucesso');
-                this.bustoModel = gltf.scene;
-                this.scene.add(this.bustoModel);
+                console.error('ERRO CAMINHO 1: Falha ao carregar de /assets/models/busto.glb');
+                console.error(error);
                 
-                // Ajustar escala e posição do modelo
-                this.bustoModel.scale.set(3, 3, 3);
-                this.bustoModel.position.y = -2;
+                // Tentar caminho alternativo
+                console.log('TENTATIVA 2: Tentando caminho alternativo...');
+                if (loadingElement) loadingElement.textContent = 'Tentando alternativa...';
                 
-                // Ativar sombras para o modelo
-                this.bustoModel.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        if (child.material) {
-                            child.material.metalness = 0.3;
-                            child.material.roughness = 0.7;
-                        }
-                    }
-                });
-                
-                this.bustoLoaded = true;
-            },
-            (progress) => {
-                console.log('Progresso:', (progress.loaded / progress.total * 100) + '%');
-            },
-            (error) => {
-                console.error('Erro ao carregar o modelo:', error);
-                // Tentar caminho alternativo se o primeiro falhar
-                console.log('Tentando caminho alternativo...');
+                // Segunda tentativa com caminho alternativo
                 loader.load(
                     '/models/busto.glb',
                     (gltf) => {
-                        console.log('Modelo carregado com sucesso pelo caminho alternativo');
+                        console.log('SUCESSO! Modelo carregado pelo caminho alternativo: /models/busto.glb');
                         this.bustoModel = gltf.scene;
                         this.scene.add(this.bustoModel);
                         
@@ -440,20 +380,96 @@ class Scene {
                         });
                         
                         this.bustoLoaded = true;
+                        this.updateBustoSize();
+                        if (loadingElement) loadingElement.style.display = 'none';
+                        
+                        console.log('Modelo foi adicionado à cena:');
+                        console.log('- Posição:', this.bustoModel.position);
+                        console.log('- Escala:', this.bustoModel.scale);
+                        console.log('- Visível:', this.bustoModel.visible);
                     },
-                    null,
+                    (progress) => {
+                        const percent = (progress.loaded / progress.total * 100).toFixed(2);
+                        if (loadingElement) loadingElement.textContent = `Carregando (alt)... ${percent}%`;
+                        console.log('Progresso caminho 2:', percent + '%');
+                    },
                     (secondError) => {
-                        console.error('Também falhou com o caminho alternativo:', secondError);
+                        console.error('ERRO CAMINHO 2: Também falhou com /models/busto.glb');
+                        console.error(secondError);
+                        if (loadingElement) loadingElement.textContent = 'Erro ao carregar o modelo';
+                        
+                        // Tentar terceira alternativa
+                        console.log('TENTATIVA 3: Tentando terceiro caminho (sem barra)...');
+                        if (loadingElement) loadingElement.textContent = 'Última tentativa...';
+                        
+                        loader.load(
+                            'models/busto.glb', // Sem barra no início
+                            (gltf) => {
+                                console.log('SUCESSO! Busto carregado pela terceira alternativa: models/busto.glb');
+                                this.bustoModel = gltf.scene;
+                                this.scene.add(this.bustoModel);
+                                
+                                this.bustoModel.scale.set(3, 3, 3);
+                                this.bustoModel.position.y = -2;
+                                
+                                this.bustoModel.traverse((child) => {
+                                    if (child.isMesh) {
+                                        child.castShadow = true;
+                                        child.receiveShadow = true;
+                                    }
+                                });
+                                
+                                this.bustoLoaded = true;
+                                this.updateBustoSize();
+                                if (loadingElement) loadingElement.style.display = 'none';
+                                
+                                console.log('Modelo foi adicionado à cena:');
+                                console.log('- Posição:', this.bustoModel.position);
+                                console.log('- Escala:', this.bustoModel.scale);
+                                console.log('- Visível:', this.bustoModel.visible);
+                            },
+                            null,
+                            (thirdError) => {
+                                console.error('ERRO FINAL: Todas as tentativas falharam');
+                                console.error(thirdError);
+                                if (loadingElement) loadingElement.textContent = 'Falha no carregamento';
+                                
+                                console.log('------------------------------');
+                                console.log('DEPURAÇÃO: FALHA NO CARREGAMENTO');
+                                console.log('Possíveis causas:');
+                                console.log('1. Arquivo não existe nos caminhos testados');
+                                console.log('2. Arquivo está corrompido');
+                                console.log('3. CORS impede acesso ao arquivo');
+                                console.log('4. Problema na configuração do servidor');
+                                console.log('------------------------------');
+                            }
+                        );
                     }
                 );
             }
         );
+    }
 
+    init() {
+        console.log('Iniciando configuração...');
+        
+        // Criar esferas orbitais
+        this.createOrbitalSpheres();
+        
+        // Configurar luzes
+        this.setupLights();
+        
+        // Carregar modelo da cabeça
+        this.loadBusto();
+        
         // Ajustar câmera e renderizador ao redimensionar
         window.addEventListener('resize', () => {
             this.camera.aspect = window.innerWidth / window.innerHeight;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(window.innerWidth, window.innerHeight);
+            if (this.bustoLoaded && this.bustoModel) {
+                this.updateBustoSize();
+            }
         });
     }
 
