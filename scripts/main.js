@@ -49,7 +49,8 @@ class Scene {
         
         // Criar cena
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x000000);
+        // Fundo transparente
+        this.scene.background = null;
         
         // Criar câmera
         this.camera = new THREE.PerspectiveCamera(
@@ -60,14 +61,15 @@ class Scene {
         );
         this.camera.position.z = 15;
         
-        // Criar renderer
+        // Criar renderer com alpha para transparência
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true 
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0x000000, 1);
+        // Configurar para transparência
+        this.renderer.setClearColor(0x000000, 0);
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.enabled = true;
