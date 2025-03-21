@@ -290,13 +290,18 @@ class Scene {
 
         console.log('Atualizando tamanho do busto...');
         
-        // Configuração básica
-        this.bustoModel.position.set(0, -2, 0); // Centralizar horizontalmente
-        this.bustoModel.scale.set(3, 3, 3);     // Escala fixa inicial
-        this.bustoModel.visible = true;         // Garantir que esteja visível
+        // Escala muito maior para garantir visibilidade
+        const scale = 25; // Valor extremamente alto
         
-        console.log('Posição atualizada:', this.bustoModel.position);
-        console.log('Escala atualizada:', this.bustoModel.scale);
+        // Aplicar escala
+        this.bustoModel.scale.set(scale, scale, scale);
+        
+        // Posicionar no centro da cena
+        this.bustoModel.position.set(0, 0, 0); 
+        this.bustoModel.visible = true;
+        
+        console.log('Nova escala aplicada:', scale);
+        console.log('Nova posição:', this.bustoModel.position);
     }
 
     loadBusto() {
@@ -336,6 +341,12 @@ class Scene {
 
                 this.scene.add(model);
                 this.bustoLoaded = true;
+                
+                // Aplicar escala grande imediatamente após carregar
+                const scale = 25;
+                this.bustoModel.scale.set(scale, scale, scale);
+                this.bustoModel.position.set(0, 0, 0);
+                
                 this.updateBustoSize();
                 if (loadingElement) loadingElement.style.display = 'none';
                 
@@ -365,7 +376,8 @@ class Scene {
                         this.bustoModel = gltf.scene;
                         this.scene.add(this.bustoModel);
                         
-                        this.bustoModel.scale.set(3, 3, 3);
+                        // Ajustar escala e posição do modelo
+                        this.bustoModel.scale.set(6, 6, 6); // Aumentando de 3 para 6
                         this.bustoModel.position.y = -2;
                         
                         this.bustoModel.traverse((child) => {
@@ -409,7 +421,7 @@ class Scene {
                                 this.bustoModel = gltf.scene;
                                 this.scene.add(this.bustoModel);
                                 
-                                this.bustoModel.scale.set(3, 3, 3);
+                                this.bustoModel.scale.set(6, 6, 6); // Aumentando de 3 para 6
                                 this.bustoModel.position.y = -2;
                                 
                                 this.bustoModel.traverse((child) => {
