@@ -28,10 +28,40 @@ class Scene {
             active: true       // Controle para ativar/desativar a animação
         };
         
-        this.init();
-        this.animate();
+        // Configuração de lastTime para animação
+        this.lastTime = performance.now();
+        
+        // Configuração dos controles de luzes
+        this.lightSettings = this.loadLightSettings();
+        
+        // Inicializar esferas orbitais
+        this.orbitalObjects = [];
+        
+        // Inicializar cena
+        this.initScene();
+        
+        // Configurar luzes
+        this.setupLights();
+        
+        // Configurar controles da câmera
+        this.setupControls();
+        
+        // Carregar modelos
+        this.loadModels();
+        
+        // Criar esferas orbitais
+        this.createOrbitalSpheres();
+        
+        // Configurar event listeners
         this.setupEventListeners();
+        
+        // Iniciar loop de renderização
+        this.animate();
+        
+        // Configurar controles de luz
         this.setupLightControls();
+        
+        console.log('Scene initialized');
     }
 
     setupCamera() {
@@ -73,72 +103,58 @@ class Scene {
     }
 
     setupEventListeners() {
-        window.addEventListener('mousemove', (event) => {
-            this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            
-            // Atualizar raycaster
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            const intersects = this.raycaster.intersectObjects(this.orbitalObjects);
-            
-            // Resetar estado de hover para todas as esferas
-            this.orbitalObjects.forEach(sphere => {
-                const state = this.sphereStates.get(sphere);
-                if (!state) {
-                    this.sphereStates.set(sphere, {
-                        isHovered: false,
-                        targetSpeed: 1,
-                        currentSpeed: 1
-                    });
-                } else {
-                    state.isHovered = false;
-                    state.targetSpeed = 1;
-                }
-            });
-            
-            // Atualizar estado de hover
-            if (intersects.length > 0) {
-                const hoveredSphere = intersects[0].object;
-                const state = this.sphereStates.get(hoveredSphere);
-                if (state) {
-                    state.isHovered = true;
-                    state.targetSpeed = 0;
-                }
-            }
+        console.log('Configurando event listeners...');
+        
+        // Redimensionar canvas quando a janela for redimensionada
+        window.addEventListener('resize', () => {
+            this.resize();
         });
 
-        window.addEventListener('mouseout', () => {
-            this.orbitalObjects.forEach(sphere => {
-                const state = this.sphereStates.get(sphere);
-                if (state) {
-                    state.isHovered = false;
-                    state.targetSpeed = 1;
-                }
+        // Toggle do painel de controle de iluminação
+        const toggleBtn = document.getElementById('toggle-panel');
+        const lightPanel = document.getElementById('light-controls');
+        
+        if (toggleBtn && lightPanel) {
+            toggleBtn.addEventListener('click', () => {
+                lightPanel.classList.toggle('collapsed');
+                toggleBtn.querySelector('.material-icons').textContent = 
+                    lightPanel.classList.contains('collapsed') ? 'expand_more' : 'expand_less';
             });
-        });
+        }
+        
+        // Nota: Interações com esferas orbitais foram removidas
     }
 
     createOrbitalSpheres(count = 6) {
-        console.log('Criando esferas orbitais...');
+        console.log('Criando esferas orbitais com textura de alumínio escovado...');
         const radius = 5;
         const sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
         
-        const sphereMaterial = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            metalness: 0.8,
-            roughness: 0.2,
-            emissive: 0x000000
+        // Material de alumínio escovado sem textura externa
+        const brushedMetalMaterial = new THREE.MeshStandardMaterial({
+            color: 0x888888, // Cor cinza para alumínio
+            metalness: 0.9,
+            roughness: 0.4,
+            envMapIntensity: 1.0
         });
-
+        
+        // Criar ambiente de reflexão
+        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+        pmremGenerator.compileEquirectangularShader();
+        
+        // Configurar cena para reflexões
+        this.scene.environment = pmremGenerator.fromScene(new THREE.Scene()).texture;
+        
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
-            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial.clone());
+            const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
             
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
             sphere.userData = { 
                 initialAngle: angle,
-                radius: radius
+                radius: radius,
+                rotationSpeed: 0.2 // Velocidade constante
             };
             
             this.orbitalObjects.push(sphere);
@@ -283,25 +299,14 @@ class Scene {
     }
 
     updateBustoSize() {
-        if (!this.bustoLoaded || !this.bustoModel) {
-            console.log('Não é possível atualizar o tamanho do busto: modelo não carregado');
-            return;
-        }
-
-        console.log('Atualizando tamanho do busto...');
-        
-        // Manter a escala grande
-        const scale = 25;
+        // Ajustar tamanho do busto
+        if (!this.bustoModel) return;
         
         // Aplicar escala
-        this.bustoModel.scale.set(scale, scale, scale);
+        this.bustoModel.scale.set(25, 25, 25);
         
-        // Centralizar na vertical (posição Y = -8 para colocar mais abaixo)
-        this.bustoModel.position.set(0, -8, 0);
-        this.bustoModel.visible = true;
-        
-        console.log('Nova escala aplicada:', scale);
-        console.log('Nova posição:', this.bustoModel.position);
+        // Centralizar
+        this.bustoModel.position.set(0, 0, 0);
     }
 
     loadBusto() {
@@ -462,75 +467,157 @@ class Scene {
         );
     }
 
-    init() {
-        console.log('Iniciando configuração...');
+    initScene() {
+        console.log('Inicializando cena...');
         
-        // Criar esferas orbitais
-        this.createOrbitalSpheres();
+        // Criar cena
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x000000);
         
-        // Configurar luzes
-        this.setupLights();
+        // Criar câmera
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.set(0, 5, 10);
         
-        // Carregar modelo da cabeça
-        this.loadBusto();
+        // Criar renderer
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.0;
         
-        // Ajustar câmera e renderizador ao redimensionar
-        window.addEventListener('resize', () => {
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-            if (this.bustoLoaded && this.bustoModel) {
-                this.updateBustoSize();
-            }
-        });
+        // Adicionar renderer ao DOM
+        document.body.appendChild(this.renderer.domElement);
+        
+        // Configuração da animação da cabeça
+        this.headAnimation = {
+            active: true,     // Animação ativa
+            time: 0,          // Tempo atual
+            speed: 0.5,       // Velocidade da animação
+            amplitude: 0.3    // Amplitude da rotação
+        };
     }
 
-    updateOrbitalObjects(deltaTime) {
-        const rotationSpeed = 0.2;
+    setupControls() {
+        console.log('Configurando controles da câmera...');
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.screenSpacePanning = false;
+        this.controls.minDistance = 5;
+        this.controls.maxDistance = 20;
+        this.controls.maxPolarAngle = Math.PI / 2;
+    }
+
+    updateOrbitalObjects() {
+        if (!this.orbitalObjects || this.orbitalObjects.length === 0) return;
         
-        this.orbitalObjects.forEach(sphere => {
-            const state = this.sphereStates.get(sphere);
-            if (!state) return;
-
-            // Interpolar suavemente entre a velocidade atual e a velocidade alvo
-            state.currentSpeed = THREE.MathUtils.lerp(
-                state.currentSpeed,
-                state.targetSpeed,
-                0.03 // Fator de suavização mais lento para transição mais suave
-            );
-
-            // Atualizar posição com base na velocidade atual
-            const angle = sphere.userData.initialAngle + performance.now() * 0.001 * rotationSpeed * state.currentSpeed;
-            sphere.position.x = Math.cos(angle) * sphere.userData.radius;
-            sphere.position.z = Math.sin(angle) * sphere.userData.radius;
+        const time = performance.now() * 0.001; // Tempo em segundos
+        
+        this.orbitalObjects.forEach(obj => {
+            if (!obj.userData) return;
+            
+            const angle = obj.userData.initialAngle + time * obj.userData.rotationSpeed;
+            const radius = obj.userData.radius;
+            
+            obj.position.x = Math.cos(angle) * radius;
+            obj.position.z = Math.sin(angle) * radius;
+            
+            // Pequena flutuação vertical
+            obj.position.y = Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
+            
+            // Rotação das esferas sobre seu próprio eixo
+            obj.rotation.y += 0.01;
+            obj.rotation.x += 0.005;
         });
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
-
-        const deltaTime = 0.016; // Aproximadamente 60fps
-
-        // Atualizar a rotação da cabeça usando função seno para movimento suave em looping
-        if (this.bustoLoaded && this.bustoModel && this.headAnimation.active) {
-            // Incrementar tempo da animação
-            this.headAnimation.time += deltaTime * this.headAnimation.speed;
-            
-            // Calcular rotação usando seno (produz movimento suave)
-            const rotation = Math.sin(this.headAnimation.time) * this.headAnimation.amplitude;
-            
-            // Aplicar rotação
-            this.bustoModel.rotation.y = rotation;
+        requestAnimationFrame(this.animate.bind(this));
+        
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - this.lastTime) / 1000;
+        this.lastTime = currentTime;
+        
+        // Atualizar busto se estiver carregado
+        if (this.bustoLoaded && this.bustoModel) {
+            this.updateBustoRotation(currentTime);
         }
-
+        
         // Atualizar esferas orbitais
-        this.updateOrbitalObjects(deltaTime);
-
+        this.updateOrbitalObjects();
+        
         // Atualizar controles
-        this.controls.update();
-
+        if (this.controls) {
+            this.controls.update();
+        }
+        
         // Renderizar cena
         this.renderer.render(this.scene, this.camera);
+    }
+
+    updateBustoRotation(currentTime) {
+        // Verificar se o busto tem animação ativa
+        if (!this.headAnimation || !this.headAnimation.active) return;
+        
+        // Calcular rotação usando seno para movimento suave e contínuo
+        const time = currentTime * 0.001 * this.headAnimation.speed;
+        const rotation = Math.sin(time) * this.headAnimation.amplitude;
+        
+        // Aplicar rotação
+        this.bustoModel.rotation.y = rotation;
+    }
+    
+    resize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        if (this.bustoLoaded && this.bustoModel) {
+            this.updateBustoSize();
+        }
+    }
+
+    loadModels() {
+        console.log('Carregando modelos...');
+        this.loadBusto();
+    }
+    
+    loadBusto() {
+        console.log('Carregando modelo do busto...');
+        this.bustoLoaded = false;
+        
+        const loader = new GLTFLoader();
+        loader.load(
+            '/assets/models/busto/scene.gltf',
+            (gltf) => {
+                console.log('Modelo do busto carregado com sucesso');
+                this.bustoModel = gltf.scene;
+                
+                // Ajustar tamanho
+                this.bustoModel.scale.set(25, 25, 25);
+                
+                // Centralizar
+                this.bustoModel.position.set(0, 0, 0);
+                
+                // Adicionar à cena
+                this.scene.add(this.bustoModel);
+                
+                // Marcar como carregado
+                this.bustoLoaded = true;
+                
+                // Ajustar tamanho e posição
+                this.updateBustoSize();
+            },
+            (xhr) => {
+                const percentComplete = (xhr.loaded / xhr.total) * 100;
+                console.log(`Progresso do carregamento do busto: ${Math.round(percentComplete)}%`);
+            },
+            (error) => {
+                console.error('Erro ao carregar modelo do busto:', error);
+            }
+        );
     }
 }
 
