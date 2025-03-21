@@ -20,6 +20,14 @@ class Scene {
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Armazenar estado de cada esfera
         
+        // Variáveis para a animação da cabeça
+        this.headRotation = {
+            current: 0,
+            target: 0.05, // 3 graus em radianos
+            speed: 0.3,   // Velocidade da animação
+            direction: 1   // Direção da animação
+        };
+        
         this.init();
         this.animate();
         this.setupEventListeners();
@@ -393,10 +401,29 @@ class Scene {
     animate() {
         requestAnimationFrame(() => this.animate());
 
-        const deltaTime = performance.now() * 0.001;
-        
+        const deltaTime = 0.016; // Aproximadamente 60fps
+
+        // Atualizar a rotação da cabeça
+        if (this.bustoLoaded && this.bustoModel) {
+            // Interpolar suavemente até o alvo
+            this.headRotation.current += (this.headRotation.target - this.headRotation.current) * 0.02;
+
+            // Inverter direção quando atingir os limites
+            if (Math.abs(this.headRotation.current) >= 0.05) { // 3 graus
+                this.headRotation.target = -this.headRotation.target;
+            }
+
+            // Aplicar rotação
+            this.bustoModel.rotation.y = this.headRotation.current;
+        }
+
+        // Atualizar esferas orbitais
         this.updateOrbitalObjects(deltaTime);
+
+        // Atualizar controles
         this.controls.update();
+
+        // Renderizar cena
         this.renderer.render(this.scene, this.camera);
     }
 }
