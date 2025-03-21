@@ -49,8 +49,9 @@ class Scene {
         
         // Create scene
         this.scene = new THREE.Scene();
-        // Transparent background
-        this.scene.background = null;
+        // Transparent background - ensure truly transparent
+        this.scene.background = null; 
+        console.log('Scene background is set to null for transparency');
         
         // Create camera
         this.camera = new THREE.PerspectiveCamera(
@@ -64,12 +65,15 @@ class Scene {
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
-            alpha: true 
+            alpha: true,
+            preserveDrawingBuffer: true 
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        // Configure for transparency
-        this.renderer.setClearColor(0x000000, 0);
+        // Configure for true transparency (fully transparent)
+        this.renderer.setClearColor(0x000000, 0); // Ensure alpha is 0 (completely transparent)
+        console.log('Renderer clear color set with alpha 0 (transparent)');
+        
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.enabled = true;
@@ -80,6 +84,9 @@ class Scene {
         // Add renderer to DOM
         if (this.container) {
             this.container.appendChild(this.renderer.domElement);
+            // Ensure canvas has transparent background
+            this.renderer.domElement.style.backgroundColor = 'transparent';
+            console.log('Canvas background style set to transparent');
         } else {
             console.warn('Container not found, adding to body');
             document.body.appendChild(this.renderer.domElement);
