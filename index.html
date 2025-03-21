@@ -5,16 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Your modern and professional website">
     <title>Fab Pessoa Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
+        :root {
+            --font-primary: 'Roboto', sans-serif;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+            --spacing-lg: 50px;
+            --color-background: #000000;
+            --color-text: #ffffff;
+            --color-primary: #4CAF50;
+            --color-primary-hover: #45a049;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: var(--font-primary);
         }
 
         body {
             overflow: hidden;
-            background: #000;
+            background: var(--color-background);
         }
 
         #scene-container {
@@ -33,7 +49,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 2rem;
+            padding: 0 var(--spacing-lg);
             position: fixed;
             top: 0;
             left: 0;
@@ -138,54 +154,51 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
-            font-family: Arial, sans-serif;
+            color: var(--color-text);
             font-size: 1.2em;
             z-index: 1000;
         }
 
         #light-controls {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
             background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
+            padding: var(--spacing-md);
             border-radius: 10px;
-            color: white;
-            font-family: Arial, sans-serif;
+            color: var(--color-text);
             z-index: 1000;
             transition: transform 0.3s ease;
         }
 
         #light-controls.collapsed {
-            transform: translateX(calc(100% + 20px));
+            transform: translateX(calc(100% + var(--spacing-md)));
         }
 
         #toggle-panel {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
             background: rgba(0, 0, 0, 0.8);
-            color: white;
+            color: var(--color-text);
             border: none;
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             z-index: 1001;
-            font-family: Arial, sans-serif;
             font-size: 14px;
             transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        #toggle-panel:hover {
-            background: rgba(0, 0, 0, 0.9);
-        }
-
-        #toggle-panel .icon {
+        .material-icons {
+            font-size: 20px;
             transition: transform 0.3s ease;
         }
 
-        #toggle-panel.panel-open .icon {
+        #toggle-panel.panel-open .material-icons {
             transform: rotate(180deg);
         }
 
@@ -195,7 +208,7 @@
         }
 
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: var(--spacing-sm);
         }
 
         .control-group label {
@@ -206,7 +219,7 @@
 
         .control-group input[type="range"] {
             width: 200px;
-            margin-right: 10px;
+            margin-right: var(--spacing-sm);
         }
 
         .control-group .value {
@@ -216,32 +229,30 @@
 
         .save-button {
             width: 100%;
-            padding: 10px;
-            background: #4CAF50;
+            padding: var(--spacing-sm);
+            background: var(--color-primary);
             border: none;
             border-radius: 5px;
-            color: white;
+            color: var(--color-text);
             font-size: 14px;
             cursor: pointer;
             transition: background 0.3s ease;
         }
 
         .save-button:hover {
-            background: #45a049;
+            background: var(--color-primary-hover);
         }
 
         .site-title {
-            color: white;
-            font-family: Arial, sans-serif;
+            color: var(--color-text);
+            font-family: var(--font-primary);
+            font-weight: 600;
             font-size: 150px;
-            font-weight: bold;
             position: fixed;
-            top: 50%;
-            left: 50px;
-            transform: translateY(-50%);
-            z-index: 10;
-            margin: 0;
-            line-height: 1;
+            top: var(--spacing-lg);
+            left: var(--spacing-lg);
+            letter-spacing: -0.1em;
+            line-height: 0.9;
             text-align: left;
             pointer-events: none;
             opacity: 0.9;
@@ -255,7 +266,10 @@
     
     <h1 class="site-title">fab.pessoa<br>experiments</h1>
     
-    <button id="toggle-panel">Lighting</button>
+    <button id="toggle-panel">
+        Lighting
+        <span class="material-icons">expand_more</span>
+    </button>
     
     <div id="scene-container"></div>
     <div id="loading">Loading...</div>
