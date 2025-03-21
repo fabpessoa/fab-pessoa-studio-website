@@ -249,13 +249,14 @@
             font-weight: 600;
             font-size: 150px;
             position: fixed;
-            top: var(--spacing-lg);
+            top: calc(80px + var(--spacing-lg)); /* 80px é a altura do header */
             left: var(--spacing-lg);
             letter-spacing: -0.1em;
             line-height: 0.9;
             text-align: left;
             pointer-events: none;
             opacity: 0.9;
+            z-index: 10; /* Garante que o título fique acima do canvas */
         }
     </style>
 </head>
