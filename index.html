@@ -249,60 +249,69 @@
             font-weight: 600;
             font-size: 150px;
             position: fixed;
-            top: calc(80px + var(--spacing-lg)); /* 80px é a altura do header */
+            top: var(--spacing-lg);
             left: var(--spacing-lg);
             letter-spacing: -0.1em;
             line-height: 0.9;
             text-align: left;
             pointer-events: none;
             opacity: 0.9;
-            z-index: 10; /* Garante que o título fique acima do canvas */
+            z-index: 10;
+        }
+
+        .light-controls {
+            position: fixed;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            min-width: 200px;
+            transition: transform 0.3s ease;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <!-- Logo será adicionado depois -->
-    </header>
-    
     <h1 class="site-title">fab.pessoa<br>experiments</h1>
     
-    <button id="toggle-panel">
-        Lighting
-        <span class="material-icons">expand_more</span>
-    </button>
-    
+    <div class="light-controls">
+        <button id="toggle-panel" class="toggle-button">
+            <span class="material-icons">expand_more</span>
+            Lighting
+        </button>
+        <div id="controls-content" class="controls-content">
+            <h3>Lighting Controls</h3>
+            <div class="control-group">
+                <label>Main Light (Right)
+                    <input type="range" id="mainLight" min="0" max="5" step="0.1" value="3">
+                    <span class="value">3.0</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Fill Light (Left)
+                    <input type="range" id="fillLight" min="0" max="2" step="0.1" value="0.2">
+                    <span class="value">0.2</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Ambient Light
+                    <input type="range" id="ambientLight" min="0" max="1" step="0.05" value="0.15">
+                    <span class="value">0.15</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Rim Light
+                    <input type="range" id="rimLight" min="0" max="2" step="0.1" value="0.5">
+                    <span class="value">0.5</span>
+                </label>
+            </div>
+            <button id="saveLightSettings" class="save-button">Save Settings</button>
+        </div>
+    </div>
+
     <div id="scene-container"></div>
     <div id="loading">Loading...</div>
-    
-    <div id="light-controls" class="collapsed">
-        <h3>Lighting Controls</h3>
-        <div class="control-group">
-            <label>Main Light (Right)
-                <input type="range" id="mainLight" min="0" max="5" step="0.1" value="3">
-                <span class="value">3.0</span>
-            </label>
-        </div>
-        <div class="control-group">
-            <label>Fill Light (Left)
-                <input type="range" id="fillLight" min="0" max="2" step="0.1" value="0.2">
-                <span class="value">0.2</span>
-            </label>
-        </div>
-        <div class="control-group">
-            <label>Ambient Light
-                <input type="range" id="ambientLight" min="0" max="1" step="0.05" value="0.15">
-                <span class="value">0.15</span>
-            </label>
-        </div>
-        <div class="control-group">
-            <label>Rim Light
-                <input type="range" id="rimLight" min="0" max="2" step="0.1" value="0.5">
-                <span class="value">0.5</span>
-            </label>
-        </div>
-        <button id="saveLightSettings" class="save-button">Save Settings</button>
-    </div>
 
     <script type="importmap">
     {

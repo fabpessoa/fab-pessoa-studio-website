@@ -99,7 +99,6 @@ class Scene {
                 const state = this.sphereStates.get(hoveredSphere);
                 state.isHovered = true;
                 state.targetSpeed = 0; // Alvo é parar
-                hoveredSphere.material.emissive.setHex(hoveredSphere.userData.hoverEmissive);
             }
         });
 
@@ -111,7 +110,6 @@ class Scene {
                     state.isHovered = false;
                     state.targetSpeed = 1; // Voltar à velocidade normal
                 }
-                sphere.material.emissive.setHex(sphere.userData.baseEmissive);
             });
         });
     }
@@ -135,8 +133,6 @@ class Scene {
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
             sphere.userData = { 
-                baseEmissive: 0x000000,
-                hoverEmissive: 0x444444,
                 initialAngle: angle,
                 radius: radius
             };
@@ -381,20 +377,13 @@ class Scene {
             state.currentSpeed = THREE.MathUtils.lerp(
                 state.currentSpeed,
                 state.targetSpeed,
-                0.1 // Fator de suavização
+                0.05 // Fator de suavização mais lento
             );
 
             // Atualizar posição com base na velocidade atual
             const angle = sphere.userData.initialAngle + performance.now() * 0.001 * rotationSpeed * state.currentSpeed;
             sphere.position.x = Math.cos(angle) * sphere.userData.radius;
             sphere.position.z = Math.sin(angle) * sphere.userData.radius;
-
-            // Atualizar emissive com base no hover
-            if (state.isHovered) {
-                sphere.material.emissive.setHex(sphere.userData.hoverEmissive);
-            } else {
-                sphere.material.emissive.setHex(sphere.userData.baseEmissive);
-            }
         });
     }
 
