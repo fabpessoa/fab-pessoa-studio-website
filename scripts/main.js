@@ -74,6 +74,8 @@ class Scene {
         this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Ensure proper sorting for transparency
+        this.renderer.sortObjects = true;
         
         // Add renderer to DOM
         if (this.container) {
@@ -131,6 +133,7 @@ class Scene {
             
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
+            sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
             sphere.userData = { 
                 initialAngle: angle,
                 radius: radius,
@@ -332,6 +335,7 @@ class Scene {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
+                        child.renderOrder = 2; // Ensure bust renders on top of the title
                         if (child.material) {
                             child.material.metalness = 0.3;
                             child.material.roughness = 0.7;

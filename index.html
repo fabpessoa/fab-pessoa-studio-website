@@ -39,6 +39,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
 
         .header {
@@ -256,7 +257,7 @@
             text-align: left;
             pointer-events: none;
             opacity: 1;
-            z-index: -1;
+            z-index: 2;
             text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
@@ -429,6 +430,19 @@
         document.querySelector('.toggle-button').addEventListener('click', function() {
             const panel = this.closest('.light-controls');
             panel.classList.toggle('collapsed');
+        });
+        
+        // Ensure site title is visible
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make sure the title is visible
+            const siteTitle = document.querySelector('.site-title');
+            if (siteTitle) {
+                // Force a reflow to ensure visibility
+                siteTitle.style.display = 'none';
+                setTimeout(() => {
+                    siteTitle.style.display = 'block';
+                }, 100);
+            }
         });
     </script>
 </body>
