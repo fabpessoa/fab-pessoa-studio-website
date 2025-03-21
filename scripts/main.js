@@ -296,8 +296,8 @@ class Scene {
         // Aplicar escala
         this.bustoModel.scale.set(25, 25, 25);
         
-        // Centralizar
-        this.bustoModel.position.set(0, 0, 0);
+        // Centralizar (posição Y negativa para baixar o busto)
+        this.bustoModel.position.set(0, -8, 0);
         
         console.log('Tamanho do busto atualizado:');
         console.log('- Escala:', this.bustoModel.scale);
@@ -342,7 +342,7 @@ class Scene {
                 
                 // Configurar escala e posição
                 this.bustoModel.scale.set(25, 25, 25);
-                this.bustoModel.position.set(0, 0, 0);
+                this.bustoModel.position.set(0, -8, 0);
                 
                 // Marcar como carregado
                 this.bustoLoaded = true;
