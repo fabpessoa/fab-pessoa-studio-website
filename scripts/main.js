@@ -5,11 +5,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 class Scene {
     constructor() {
         console.log('Iniciando cena...');
+        
+        // Configuração de lastTime para animação
+        this.lastTime = performance.now();
+        
+        // Inicializar variáveis
         this.container = document.getElementById('scene-container');
-        this.scene = new THREE.Scene();
-        this.camera = this.setupCamera();
-        this.renderer = this.setupRenderer();
-        this.controls = this.setupControls();
         this.orbitalObjects = [];
         this.bustoLoaded = false;
         this.raycaster = new THREE.Raycaster();
@@ -20,86 +21,74 @@ class Scene {
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Armazenar estado de cada esfera
         
-        // Variáveis para a animação da cabeça - usando abordagem com seno para movimento suave
+        // Variáveis para a animação da cabeça
         this.headAnimation = {
             time: 0,           // Tempo decorrido para a animação
-            speed: 0.5,        // Velocidade da animação (ajustar para mais lento/rápido)
-            amplitude: 0.05,   // Amplitude máxima em radianos (3 graus)
+            speed: 0.5,        // Velocidade da animação
+            amplitude: 0.05,   // Amplitude máxima em radianos
             active: true       // Controle para ativar/desativar a animação
         };
         
-        // Configuração de lastTime para animação
-        this.lastTime = performance.now();
-        
-        // Configuração dos controles de luzes
-        this.lightSettings = this.loadLightSettings();
-        
-        // Inicializar esferas orbitais
-        this.orbitalObjects = [];
-        
-        // Inicializar cena
+        // Configuração inicial
         this.initScene();
-        
-        // Configurar luzes
         this.setupLights();
-        
-        // Configurar controles da câmera
         this.setupControls();
-        
-        // Carregar modelos
         this.loadModels();
-        
-        // Criar esferas orbitais
         this.createOrbitalSpheres();
-        
-        // Configurar event listeners
         this.setupEventListeners();
+        this.setupLightControls();
         
         // Iniciar loop de renderização
         this.animate();
         
-        // Configurar controles de luz
-        this.setupLightControls();
-        
         console.log('Scene initialized');
     }
 
-    setupCamera() {
-        console.log('Configurando câmera...');
-        const camera = new THREE.PerspectiveCamera(
+    initScene() {
+        console.log('Inicializando cena...');
+        
+        // Criar cena
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x000000);
+        
+        // Criar câmera
+        this.camera = new THREE.PerspectiveCamera(
             45,
             window.innerWidth / window.innerHeight,
             0.1,
             1000
         );
-        camera.position.z = 15;
-        return camera;
-    }
-
-    setupRenderer() {
-        console.log('Configurando renderer...');
-        const renderer = new THREE.WebGLRenderer({ 
+        this.camera.position.z = 15;
+        
+        // Criar renderer
+        this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true 
         });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x000000, 1);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
-        renderer.shadowMap.enabled = true;
-        this.container.appendChild(renderer.domElement);
-        return renderer;
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setClearColor(0x000000, 1);
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.0;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        // Adicionar renderer ao DOM
+        if (this.container) {
+            this.container.appendChild(this.renderer.domElement);
+        } else {
+            console.warn('Container não encontrado, adicionando ao body');
+            document.body.appendChild(this.renderer.domElement);
+        }
     }
 
     setupControls() {
         console.log('Configurando controles...');
-        const controls = new OrbitControls(this.camera, this.renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxDistance = 30;
-        controls.minDistance = 5;
-        return controls;
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.maxDistance = 30;
+        this.controls.minDistance = 5;
     }
 
     setupEventListeners() {
@@ -111,18 +100,7 @@ class Scene {
         });
 
         // Toggle do painel de controle de iluminação
-        const toggleBtn = document.getElementById('toggle-panel');
-        const lightPanel = document.getElementById('light-controls');
-        
-        if (toggleBtn && lightPanel) {
-            toggleBtn.addEventListener('click', () => {
-                lightPanel.classList.toggle('collapsed');
-                toggleBtn.querySelector('.material-icons').textContent = 
-                    lightPanel.classList.contains('collapsed') ? 'expand_more' : 'expand_less';
-            });
-        }
-        
-        // Nota: Interações com esferas orbitais foram removidas
+        // Já está sendo configurado diretamente no HTML
     }
 
     createOrbitalSpheres(count = 6) {
@@ -245,35 +223,45 @@ class Scene {
 
         // Main Light
         const mainLightSlider = document.getElementById('mainLight');
-        mainLightSlider.addEventListener('input', (e) => {
-            this.lights.main.intensity = parseFloat(e.target.value);
-            updateValue(mainLightSlider, e.target.value);
-        });
+        if (mainLightSlider) {
+            mainLightSlider.addEventListener('input', (e) => {
+                this.lights.main.intensity = parseFloat(e.target.value);
+                updateValue(mainLightSlider, e.target.value);
+            });
+        }
 
         // Fill Light
         const fillLightSlider = document.getElementById('fillLight');
-        fillLightSlider.addEventListener('input', (e) => {
-            this.lights.fill.intensity = parseFloat(e.target.value);
-            updateValue(fillLightSlider, e.target.value);
-        });
+        if (fillLightSlider) {
+            fillLightSlider.addEventListener('input', (e) => {
+                this.lights.fill.intensity = parseFloat(e.target.value);
+                updateValue(fillLightSlider, e.target.value);
+            });
+        }
 
         // Ambient Light
         const ambientLightSlider = document.getElementById('ambientLight');
-        ambientLightSlider.addEventListener('input', (e) => {
-            this.lights.ambient.intensity = parseFloat(e.target.value);
-            updateValue(ambientLightSlider, e.target.value);
-        });
+        if (ambientLightSlider) {
+            ambientLightSlider.addEventListener('input', (e) => {
+                this.lights.ambient.intensity = parseFloat(e.target.value);
+                updateValue(ambientLightSlider, e.target.value);
+            });
+        }
 
         // Rim Light
         const rimLightSlider = document.getElementById('rimLight');
-        rimLightSlider.addEventListener('input', (e) => {
-            this.lights.rim.intensity = parseFloat(e.target.value);
-            updateValue(rimLightSlider, e.target.value);
-        });
+        if (rimLightSlider) {
+            rimLightSlider.addEventListener('input', (e) => {
+                this.lights.rim.intensity = parseFloat(e.target.value);
+                updateValue(rimLightSlider, e.target.value);
+            });
+        }
 
         // Save Button
         const saveButton = document.getElementById('saveLightSettings');
-        saveButton.addEventListener('click', () => this.saveLightSettings());
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.saveLightSettings());
+        }
     }
 
     saveLightSettings() {
@@ -300,40 +288,45 @@ class Scene {
 
     updateBustoSize() {
         // Ajustar tamanho do busto
-        if (!this.bustoModel) return;
+        if (!this.bustoModel) {
+            console.log('Não é possível atualizar o busto: modelo não encontrado');
+            return;
+        }
         
         // Aplicar escala
         this.bustoModel.scale.set(25, 25, 25);
         
         // Centralizar
         this.bustoModel.position.set(0, 0, 0);
+        
+        console.log('Tamanho do busto atualizado:');
+        console.log('- Escala:', this.bustoModel.scale);
+        console.log('- Posição:', this.bustoModel.position);
     }
 
+    loadModels() {
+        console.log('Carregando modelos...');
+        this.loadBusto();
+    }
+    
     loadBusto() {
-        console.log('Carregando busto...');
-        
-        // Adicionar mensagem de depuração clara
-        console.log('------------------------------');
-        console.log('DEPURAÇÃO: INICIANDO CARREGAMENTO DO MODELO');
-        console.log('Caminhos a tentar:');
-        console.log('1. /assets/models/busto.glb');
-        console.log('2. /models/busto.glb');
-        console.log('3. models/busto.glb (sem barra)');
-        console.log('------------------------------');
-        
-        const loader = new GLTFLoader();
+        console.log('Carregando modelo do busto...');
+        this.bustoLoaded = false;
         
         const loadingElement = document.getElementById('loading');
+        if (loadingElement) loadingElement.style.display = 'block';
         
-        // Tentar caminho principal
+        console.log('Tentando carregar busto de: /assets/models/busto.glb');
+        
+        const loader = new GLTFLoader();
         loader.load(
             '/assets/models/busto.glb',
             (gltf) => {
-                console.log('SUCESSO! Busto carregado pelo caminho: /assets/models/busto.glb');
-                const model = gltf.scene;
-                this.bustoModel = model;
+                console.log('SUCESSO! Busto carregado com sucesso');
+                this.bustoModel = gltf.scene;
                 
-                model.traverse((child) => {
+                // Configurar materiais
+                this.bustoModel.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
@@ -343,171 +336,40 @@ class Scene {
                         }
                     }
                 });
-
-                this.scene.add(model);
+                
+                // Adicionar à cena
+                this.scene.add(this.bustoModel);
+                
+                // Configurar escala e posição
+                this.bustoModel.scale.set(25, 25, 25);
+                this.bustoModel.position.set(0, 0, 0);
+                
+                // Marcar como carregado
                 this.bustoLoaded = true;
                 
-                // Aplicar escala grande imediatamente após carregar
-                const scale = 25;
-                this.bustoModel.scale.set(scale, scale, scale);
-                this.bustoModel.position.set(0, -8, 0);
-                
-                this.updateBustoSize();
+                // Esconder loader
                 if (loadingElement) loadingElement.style.display = 'none';
                 
-                console.log('Modelo foi adicionado à cena:');
-                console.log('- Posição:', this.bustoModel.position);
-                console.log('- Escala:', this.bustoModel.scale);
-                console.log('- Visível:', this.bustoModel.visible);
+                console.log('Busto adicionado à cena com sucesso');
             },
-            (progress) => {
-                const percent = (progress.loaded / progress.total * 100).toFixed(2);
+            (xhr) => {
+                const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
                 if (loadingElement) loadingElement.textContent = `Carregando... ${percent}%`;
-                console.log('Progresso caminho 1:', percent + '%');
+                console.log(`Progresso: ${percent}%`);
             },
             (error) => {
-                console.error('ERRO CAMINHO 1: Falha ao carregar de /assets/models/busto.glb');
-                console.error(error);
+                console.error('Erro ao carregar o modelo:', error);
+                if (loadingElement) loadingElement.textContent = 'Erro ao carregar o modelo';
                 
-                // Tentar caminho alternativo
-                console.log('TENTATIVA 2: Tentando caminho alternativo...');
-                if (loadingElement) loadingElement.textContent = 'Tentando alternativa...';
-                
-                // Segunda tentativa com caminho alternativo
-                loader.load(
-                    '/models/busto.glb',
-                    (gltf) => {
-                        console.log('SUCESSO! Modelo carregado pelo caminho alternativo: /models/busto.glb');
-                        this.bustoModel = gltf.scene;
-                        this.scene.add(this.bustoModel);
-                        
-                        // Ajustar escala e posição do modelo
-                        this.bustoModel.scale.set(25, 25, 25);
-                        this.bustoModel.position.set(0, -8, 0);
-                        
-                        this.bustoModel.traverse((child) => {
-                            if (child.isMesh) {
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                                if (child.material) {
-                                    child.material.metalness = 0.3;
-                                    child.material.roughness = 0.7;
-                                }
-                            }
-                        });
-                        
-                        this.bustoLoaded = true;
-                        this.updateBustoSize();
-                        if (loadingElement) loadingElement.style.display = 'none';
-                        
-                        console.log('Modelo foi adicionado à cena:');
-                        console.log('- Posição:', this.bustoModel.position);
-                        console.log('- Escala:', this.bustoModel.scale);
-                        console.log('- Visível:', this.bustoModel.visible);
-                    },
-                    (progress) => {
-                        const percent = (progress.loaded / progress.total * 100).toFixed(2);
-                        if (loadingElement) loadingElement.textContent = `Carregando (alt)... ${percent}%`;
-                        console.log('Progresso caminho 2:', percent + '%');
-                    },
-                    (secondError) => {
-                        console.error('ERRO CAMINHO 2: Também falhou com /models/busto.glb');
-                        console.error(secondError);
-                        if (loadingElement) loadingElement.textContent = 'Erro ao carregar o modelo';
-                        
-                        // Tentar terceira alternativa
-                        console.log('TENTATIVA 3: Tentando terceiro caminho (sem barra)...');
-                        if (loadingElement) loadingElement.textContent = 'Última tentativa...';
-                        
-                        loader.load(
-                            'models/busto.glb', // Sem barra no início
-                            (gltf) => {
-                                console.log('SUCESSO! Busto carregado pela terceira alternativa: models/busto.glb');
-                                this.bustoModel = gltf.scene;
-                                this.scene.add(this.bustoModel);
-                                
-                                this.bustoModel.scale.set(25, 25, 25);
-                                this.bustoModel.position.set(0, -8, 0);
-                                
-                                this.bustoModel.traverse((child) => {
-                                    if (child.isMesh) {
-                                        child.castShadow = true;
-                                        child.receiveShadow = true;
-                                    }
-                                });
-                                
-                                this.bustoLoaded = true;
-                                this.updateBustoSize();
-                                if (loadingElement) loadingElement.style.display = 'none';
-                                
-                                console.log('Modelo foi adicionado à cena:');
-                                console.log('- Posição:', this.bustoModel.position);
-                                console.log('- Escala:', this.bustoModel.scale);
-                                console.log('- Visível:', this.bustoModel.visible);
-                            },
-                            null,
-                            (thirdError) => {
-                                console.error('ERRO FINAL: Todas as tentativas falharam');
-                                console.error(thirdError);
-                                if (loadingElement) loadingElement.textContent = 'Falha no carregamento';
-                                
-                                console.log('------------------------------');
-                                console.log('DEPURAÇÃO: FALHA NO CARREGAMENTO');
-                                console.log('Possíveis causas:');
-                                console.log('1. Arquivo não existe nos caminhos testados');
-                                console.log('2. Arquivo está corrompido');
-                                console.log('3. CORS impede acesso ao arquivo');
-                                console.log('4. Problema na configuração do servidor');
-                                console.log('------------------------------');
-                            }
-                        );
-                    }
-                );
+                console.log('------------------------------');
+                console.log('DEPURAÇÃO: FALHA NO CARREGAMENTO');
+                console.log('Possíveis causas:');
+                console.log('1. CORS impede acesso ao arquivo');
+                console.log('2. Problema na configuração do servidor');
+                console.log('3. Arquivo está corrompido');
+                console.log('------------------------------');
             }
         );
-    }
-
-    initScene() {
-        console.log('Inicializando cena...');
-        
-        // Criar cena
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x000000);
-        
-        // Criar câmera
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.set(0, 5, 10);
-        
-        // Criar renderer
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.0;
-        
-        // Adicionar renderer ao DOM
-        document.body.appendChild(this.renderer.domElement);
-        
-        // Configuração da animação da cabeça
-        this.headAnimation = {
-            active: true,     // Animação ativa
-            time: 0,          // Tempo atual
-            speed: 0.5,       // Velocidade da animação
-            amplitude: 0.3    // Amplitude da rotação
-        };
-    }
-
-    setupControls() {
-        console.log('Configurando controles da câmera...');
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-        this.controls.screenSpacePanning = false;
-        this.controls.minDistance = 5;
-        this.controls.maxDistance = 20;
-        this.controls.maxPolarAngle = Math.PI / 2;
     }
 
     updateOrbitalObjects() {
@@ -579,45 +441,17 @@ class Scene {
         }
     }
 
-    loadModels() {
-        console.log('Carregando modelos...');
-        this.loadBusto();
-    }
-    
-    loadBusto() {
-        console.log('Carregando modelo do busto...');
-        this.bustoLoaded = false;
-        
-        const loader = new GLTFLoader();
-        loader.load(
-            '/assets/models/busto/scene.gltf',
-            (gltf) => {
-                console.log('Modelo do busto carregado com sucesso');
-                this.bustoModel = gltf.scene;
-                
-                // Ajustar tamanho
-                this.bustoModel.scale.set(25, 25, 25);
-                
-                // Centralizar
-                this.bustoModel.position.set(0, 0, 0);
-                
-                // Adicionar à cena
-                this.scene.add(this.bustoModel);
-                
-                // Marcar como carregado
-                this.bustoLoaded = true;
-                
-                // Ajustar tamanho e posição
-                this.updateBustoSize();
-            },
-            (xhr) => {
-                const percentComplete = (xhr.loaded / xhr.total) * 100;
-                console.log(`Progresso do carregamento do busto: ${Math.round(percentComplete)}%`);
-            },
-            (error) => {
-                console.error('Erro ao carregar modelo do busto:', error);
-            }
-        );
+    loadLightSettings() {
+        const savedSettings = localStorage.getItem('lightSettings');
+        if (savedSettings) {
+            return JSON.parse(savedSettings);
+        }
+        return {
+            mainLight: 3,
+            fillLight: 0.2,
+            ambientLight: 0.15,
+            rimLight: 0.5
+        };
     }
 }
 
