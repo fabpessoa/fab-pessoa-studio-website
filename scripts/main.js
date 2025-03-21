@@ -20,12 +20,12 @@ class Scene {
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Armazenar estado de cada esfera
         
-        // Variáveis para a animação da cabeça
-        this.headRotation = {
-            current: 0,
-            target: 0.05, // 3 graus em radianos
-            speed: 0.3,   // Velocidade da animação
-            direction: 1   // Direção da animação
+        // Variáveis para a animação da cabeça - usando abordagem com seno para movimento suave
+        this.headAnimation = {
+            time: 0,           // Tempo decorrido para a animação
+            speed: 0.5,        // Velocidade da animação (ajustar para mais lento/rápido)
+            amplitude: 0.05,   // Amplitude máxima em radianos (3 graus)
+            active: true       // Controle para ativar/desativar a animação
         };
         
         this.init();
@@ -511,18 +511,16 @@ class Scene {
 
         const deltaTime = 0.016; // Aproximadamente 60fps
 
-        // Atualizar a rotação da cabeça
-        if (this.bustoLoaded && this.bustoModel) {
-            // Interpolar suavemente até o alvo
-            this.headRotation.current += (this.headRotation.target - this.headRotation.current) * 0.02;
-
-            // Inverter direção quando atingir os limites
-            if (Math.abs(this.headRotation.current) >= 0.05) { // 3 graus
-                this.headRotation.target = -this.headRotation.target;
-            }
-
+        // Atualizar a rotação da cabeça usando função seno para movimento suave em looping
+        if (this.bustoLoaded && this.bustoModel && this.headAnimation.active) {
+            // Incrementar tempo da animação
+            this.headAnimation.time += deltaTime * this.headAnimation.speed;
+            
+            // Calcular rotação usando seno (produz movimento suave)
+            const rotation = Math.sin(this.headAnimation.time) * this.headAnimation.amplitude;
+            
             // Aplicar rotação
-            this.bustoModel.rotation.y = this.headRotation.current;
+            this.bustoModel.rotation.y = rotation;
         }
 
         // Atualizar esferas orbitais
