@@ -108,12 +108,12 @@ class Scene {
         const radius = 5;
         const sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
         
-        // Material de alumínio escovado sem textura externa
+        // Material de alumínio escovado claro
         const brushedMetalMaterial = new THREE.MeshStandardMaterial({
-            color: 0x888888, // Cor cinza para alumínio
-            metalness: 0.9,
-            roughness: 0.4,
-            envMapIntensity: 1.0
+            color: 0xDDDDDD, // Cor prata claro para alumínio
+            metalness: 0.85,
+            roughness: 0.2,
+            envMapIntensity: 1.5
         });
         
         // Criar ambiente de reflexão
