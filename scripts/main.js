@@ -63,11 +63,11 @@ class Scene {
             1000
         );
         
-        // Position camera to view the center of the scene
-        this.camera.position.set(0, 0, 15); // Directly in front
-        this.camera.lookAt(0, 0, 0); // Look at the center
+        // Position camera to view the center of the scene at y=-3
+        this.camera.position.set(0, -3, 15); // Aligned with bust position
+        this.camera.lookAt(0, -3, 0); // Look at the center point where bust and spheres are
         
-        console.log('Camera positioned at:', this.camera.position);
+        console.log('Camera positioned at:', this.camera.position, 'looking at (0,-3,0)');
         
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
@@ -172,23 +172,24 @@ class Scene {
             const angle = (i / count) * Math.PI * 2;
             const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
             
-            // Position spheres in a circle around the center
+            // Position spheres in a circle around the center, with vertical offset to match bust
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
-            sphere.position.y = 0; // Centered vertically
+            sphere.position.y = -3; // Match the bust's vertical position
             
             sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
             sphere.userData = { 
                 initialAngle: angle,
                 radius: radius,
-                rotationSpeed: 0.2 // Constant speed
+                rotationSpeed: 0.2, // Constant speed
+                verticalCenter: -3 // Store the center point for animations
             };
             
             this.orbitalObjects.push(sphere);
             this.scene.add(sphere);
         }
         
-        console.log(`Created ${count} orbital spheres centered at (0,0,0) with radius ${radius}`);
+        console.log(`Created ${count} orbital spheres centered vertically at y=-3 with radius ${radius}`);
     }
 
     setupLights() {
@@ -520,13 +521,14 @@ class Scene {
             
             const angle = obj.userData.initialAngle + time * obj.userData.rotationSpeed;
             const radius = obj.userData.radius;
+            const verticalCenter = obj.userData.verticalCenter || -3;
             
             // Position in a perfect circle around the center
             obj.position.x = Math.cos(angle) * radius;
             obj.position.z = Math.sin(angle) * radius;
             
-            // Small vertical fluctuation (centered around y=0)
-            obj.position.y = Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
+            // Small vertical fluctuation (centered around the bust position)
+            obj.position.y = verticalCenter + Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
             
             // Rotation of spheres on their own axis
             obj.rotation.y += 0.01;
@@ -591,6 +593,16 @@ class Scene {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        // Ensure camera is still looking at the centered position
+        this.camera.position.set(0, -3, 15);
+        this.camera.lookAt(0, -3, 0);
+        
+        // Ensure controls target is still set correctly
+        if (this.controls) {
+            this.controls.target.set(0, -3, 0);
+            this.controls.update();
+        }
         
         if (this.bustoLoaded && this.bustoModel) {
             this.updateBustoSize();
