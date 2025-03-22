@@ -61,7 +61,13 @@ class Scene {
             0.1,
             1000
         );
+        
+        // Position camera to better view the bust
         this.camera.position.z = 15;
+        this.camera.position.y = 2; // Slightly above to look at bust from above
+        this.camera.lookAt(0, 0, 0);
+        
+        console.log('Camera positioned at:', this.camera.position);
         
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
@@ -314,18 +320,18 @@ class Scene {
         
         if (isLandscape) {
             // Desktop and landscape: center and 80% of viewport height
-            const scale = window.innerHeight * 0.8 / 20; // Adjust divisor based on model size
+            const scale = window.innerHeight * 0.8 / 10; // Reduced divisor for larger size
             this.bustoModel.scale.set(scale, scale, scale);
             
-            // Center (negative Y position to lower the bust)
-            this.bustoModel.position.set(0, -scale/3, 0);
+            // Center (position bust more prominently)
+            this.bustoModel.position.set(0, 0, 0);
         } else {
             // Mobile and portrait: center and 80% of viewport width
-            const scale = window.innerWidth * 0.8 / 20; // Adjust divisor based on model size
+            const scale = window.innerWidth * 0.8 / 10; // Reduced divisor for larger size
             this.bustoModel.scale.set(scale, scale, scale);
             
-            // Center position but higher in portrait mode
-            this.bustoModel.position.set(0, -scale/4, 0);
+            // Center position but slightly higher in portrait mode
+            this.bustoModel.position.set(0, 0, 0);
         }
         
         console.log('Bust size updated based on orientation:', isLandscape ? 'landscape' : 'portrait');
@@ -349,7 +355,7 @@ class Scene {
         
         const loader = new GLTFLoader();
         loader.load(
-            '/assets/models/busto.glb',
+            'assets/models/busto.glb', // Fixed path without leading slash
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
                 this.bustoModel = gltf.scene;
@@ -364,6 +370,7 @@ class Scene {
                             child.material.metalness = 0.3;
                             child.material.roughness = 0.7;
                         }
+                        console.log('Mesh found in bust:', child.name);
                     }
                 });
                 
@@ -373,13 +380,22 @@ class Scene {
                 // Configure scale and position using responsive sizing
                 this.updateBustoSize();
                 
+                // Adjust camera to make sure bust is visible
+                this.camera.position.z = 20;
+                this.camera.position.y = 0;
+                this.camera.lookAt(0, 0, 0);
+                
                 // Mark as loaded
                 this.bustoLoaded = true;
                 
                 // Hide loader
                 if (loadingElement) loadingElement.style.display = 'none';
                 
+                // Log the position and scale for debugging
                 console.log('Bust successfully added to scene');
+                console.log('Bust position:', this.bustoModel.position);
+                console.log('Bust scale:', this.bustoModel.scale);
+                console.log('Camera position:', this.camera.position);
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
@@ -396,7 +412,64 @@ class Scene {
                 console.log('1. CORS preventing file access');
                 console.log('2. Server configuration issue');
                 console.log('3. File is corrupted');
+                console.log('4. Path is incorrect, trying relative path');
                 console.log('------------------------------');
+                
+                // Try alternate path as fallback
+                this.tryAlternateLoadPath();
+            }
+        );
+    }
+    
+    tryAlternateLoadPath() {
+        console.log('Trying alternate path for bust model...');
+        
+        const loadingElement = document.getElementById('loading');
+        
+        const loader = new GLTFLoader();
+        loader.load(
+            'assets/models/busto.glb', // Try relative path without leading slash
+            (gltf) => {
+                console.log('SUCCESS with alternate path! Bust loaded successfully');
+                this.bustoModel = gltf.scene;
+                
+                // Configure materials
+                this.bustoModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        child.renderOrder = 2;
+                        if (child.material) {
+                            child.material.metalness = 0.3;
+                            child.material.roughness = 0.7;
+                        }
+                    }
+                });
+                
+                // Add to scene
+                this.scene.add(this.bustoModel);
+                
+                // Configure scale and position
+                this.updateBustoSize();
+                
+                // Adjust camera
+                this.camera.position.z = 20;
+                
+                // Mark as loaded
+                this.bustoLoaded = true;
+                
+                // Hide loader
+                if (loadingElement) loadingElement.style.display = 'none';
+                
+                console.log('Bust successfully added to scene with alternate path');
+            },
+            (xhr) => {
+                const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
+                if (loadingElement) loadingElement.textContent = `Loading again... ${percent}%`;
+            },
+            (error) => {
+                console.error('Error loading model with alternate path:', error);
+                if (loadingElement) loadingElement.textContent = 'Failed to load model';
             }
         );
     }
