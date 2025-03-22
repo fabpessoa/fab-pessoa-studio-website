@@ -168,28 +168,111 @@ class Scene {
         });
         this.orbitalObjects = [];
         
-        for (let i = 0; i < count; i++) {
-            const angle = (i / count) * Math.PI * 2;
-            const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
+        // First, load the bottle model
+        this.loadBottleModel().then(bottleModel => {
+            if (bottleModel) {
+                // Add bottle as the first orbital object
+                bottleModel.userData = { 
+                    initialAngle: 0,
+                    radius: radius,
+                    rotationSpeed: 0.2, // Constant speed
+                    verticalCenter: 0, // Store the center point for animations
+                    isBottle: true // Mark as bottle for special handling
+                };
+                
+                this.orbitalObjects.push(bottleModel);
+                this.scene.add(bottleModel);
+                
+                // Create remaining spheres (count - 1)
+                for (let i = 0; i < count - 1; i++) {
+                    const angle = ((i + 1) / count) * Math.PI * 2; // +1 to skip the bottle position
+                    const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
+                    
+                    // Position spheres in a circle around the center
+                    sphere.position.x = Math.cos(angle) * radius;
+                    sphere.position.z = Math.sin(angle) * radius;
+                    sphere.position.y = 0; // Centered at same height as bust
+                    
+                    sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
+                    sphere.userData = { 
+                        initialAngle: angle,
+                        radius: radius,
+                        rotationSpeed: 0.2, // Constant speed
+                        verticalCenter: 0 // Store the center point for animations
+                    };
+                    
+                    this.orbitalObjects.push(sphere);
+                    this.scene.add(sphere);
+                }
+                
+                console.log(`Created champagne bottle and ${count-1} orbital spheres centered at origin with radius ${radius}`);
+            } else {
+                // Fallback to all spheres if bottle loading fails
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * Math.PI * 2;
+                    const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
+                    
+                    // Position spheres in a circle around the center
+                    sphere.position.x = Math.cos(angle) * radius;
+                    sphere.position.z = Math.sin(angle) * radius;
+                    sphere.position.y = 0; // Centered at same height as bust
+                    
+                    sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
+                    sphere.userData = { 
+                        initialAngle: angle,
+                        radius: radius,
+                        rotationSpeed: 0.2, // Constant speed
+                        verticalCenter: 0 // Store the center point for animations
+                    };
+                    
+                    this.orbitalObjects.push(sphere);
+                    this.scene.add(sphere);
+                }
+                
+                console.log(`Created ${count} orbital spheres centered at origin with radius ${radius}`);
+            }
+        });
+    }
+    
+    loadBottleModel() {
+        return new Promise((resolve, reject) => {
+            console.log('Loading champagne bottle model...');
             
-            // Position spheres in a circle around the center
-            sphere.position.x = Math.cos(angle) * radius;
-            sphere.position.z = Math.sin(angle) * radius;
-            sphere.position.y = 0; // Centered at same height as bust
+            // Try to load the bottle model
+            const bottlePath = '/assets/models/bottle/Pbr/base_basic_pbr.glb';
             
-            sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
-            sphere.userData = { 
-                initialAngle: angle,
-                radius: radius,
-                rotationSpeed: 0.2, // Constant speed
-                verticalCenter: 0 // Store the center point for animations
-            };
-            
-            this.orbitalObjects.push(sphere);
-            this.scene.add(sphere);
-        }
-        
-        console.log(`Created ${count} orbital spheres centered at origin with radius ${radius}`);
+            new GLTFLoader().load(
+                bottlePath,
+                (gltf) => {
+                    console.log('Bottle model loaded successfully!');
+                    const bottleModel = gltf.scene;
+                    
+                    // Adjust scale and position
+                    bottleModel.scale.set(0.5, 0.5, 0.5); // Adjust scale as needed
+                    
+                    // Position the bottle initially at the first orbital position
+                    const angle = 0; // Starting angle
+                    const radius = 5; // Same radius as other objects
+                    
+                    bottleModel.position.x = Math.cos(angle) * radius;
+                    bottleModel.position.z = Math.sin(angle) * radius;
+                    bottleModel.position.y = 0;
+                    
+                    // Set render order
+                    bottleModel.renderOrder = 3;
+                    
+                    resolve(bottleModel);
+                },
+                (xhr) => {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    console.log(`Loading bottle model: ${percent}% completed`);
+                },
+                (error) => {
+                    console.error('Error loading bottle model:', error);
+                    resolve(null); // Resolve with null to fallback to spheres
+                }
+            );
+        });
     }
 
     setupLights() {
@@ -519,7 +602,11 @@ class Scene {
             
             // Rotation of spheres on their own axis
             obj.rotation.y += 0.01;
-            obj.rotation.x += 0.005;
+            
+            if (!obj.userData.isBottle) {
+                // Only apply additional x rotation to spheres, not the bottle
+                obj.rotation.x += 0.005;
+            }
         });
     }
 
