@@ -304,19 +304,31 @@ class Scene {
     }
 
     updateBustoSize() {
-        // Adjust bust size
+        // Adjust bust size based on viewport orientation
         if (!this.bustoModel) {
             console.log('Cannot update bust: model not found');
             return;
         }
         
-        // Apply scale
-        this.bustoModel.scale.set(25, 25, 25);
+        const isLandscape = window.innerWidth > window.innerHeight;
         
-        // Center (negative Y position to lower the bust)
-        this.bustoModel.position.set(0, -8, 0);
+        if (isLandscape) {
+            // Desktop and landscape: center and 80% of viewport height
+            const scale = window.innerHeight * 0.8 / 20; // Adjust divisor based on model size
+            this.bustoModel.scale.set(scale, scale, scale);
+            
+            // Center (negative Y position to lower the bust)
+            this.bustoModel.position.set(0, -scale/3, 0);
+        } else {
+            // Mobile and portrait: center and 80% of viewport width
+            const scale = window.innerWidth * 0.8 / 20; // Adjust divisor based on model size
+            this.bustoModel.scale.set(scale, scale, scale);
+            
+            // Center position but higher in portrait mode
+            this.bustoModel.position.set(0, -scale/4, 0);
+        }
         
-        console.log('Bust size updated:');
+        console.log('Bust size updated based on orientation:', isLandscape ? 'landscape' : 'portrait');
         console.log('- Scale:', this.bustoModel.scale);
         console.log('- Position:', this.bustoModel.position);
     }
@@ -358,9 +370,8 @@ class Scene {
                 // Add to scene
                 this.scene.add(this.bustoModel);
                 
-                // Configure scale and position
-                this.bustoModel.scale.set(25, 25, 25);
-                this.bustoModel.position.set(0, -8, 0);
+                // Configure scale and position using responsive sizing
+                this.updateBustoSize();
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
