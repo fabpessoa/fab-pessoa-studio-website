@@ -63,11 +63,11 @@ class Scene {
             1000
         );
         
-        // Position camera to view the center of the scene at y=-6
-        this.camera.position.set(0, -5, 15); // Aligned with bust position
-        this.camera.lookAt(0, -6, 0); // Look at the center point where bust is
+        // Position camera to standard front view
+        this.camera.position.set(0, 0, 15);
+        this.camera.lookAt(0, 0, 0);
         
-        console.log('Camera positioned at:', this.camera.position, 'looking at (0,-6,0)');
+        console.log('Camera positioned at standard view:', this.camera.position);
         
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
@@ -123,8 +123,8 @@ class Scene {
         this.controls.maxDistance = 30;
         this.controls.minDistance = 5;
         
-        // Set target to the bust position
-        this.controls.target.set(0, -6, 0);
+        // Set target to scene center
+        this.controls.target.set(0, 0, 0);
         this.controls.update();
     }
 
@@ -172,24 +172,24 @@ class Scene {
             const angle = (i / count) * Math.PI * 2;
             const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
             
-            // Position spheres in a circle around the center, with vertical offset to match bust
+            // Position spheres in a circle around the center
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
-            sphere.position.y = -3; // Match the bust's vertical position
+            sphere.position.y = 0; // Centered at same height as bust
             
             sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
             sphere.userData = { 
                 initialAngle: angle,
                 radius: radius,
                 rotationSpeed: 0.2, // Constant speed
-                verticalCenter: -3 // Store the center point for animations
+                verticalCenter: 0 // Store the center point for animations
             };
             
             this.orbitalObjects.push(sphere);
             this.scene.add(sphere);
         }
         
-        console.log(`Created ${count} orbital spheres centered vertically at y=-3 with radius ${radius}`);
+        console.log(`Created ${count} orbital spheres centered at origin with radius ${radius}`);
     }
 
     setupLights() {
@@ -358,22 +358,17 @@ class Scene {
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust lower to compensate for model's internal origin offset
-        this.bustoModel.position.set(0, -6, 0); // Move down by 6 units instead of 3
+        // Position bust at center of scene
+        this.bustoModel.position.set(0, 0, 0);
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
         this.bustoModel.rotation.y = 0;
         this.bustoModel.rotation.z = 0;
         
-        // Reset camera position to directly face the bust
-        this.camera.position.set(0, -5, 15); // Move camera down to follow bust
-        this.camera.lookAt(0, -6, 0); // Look at the bust's new position
-        
         console.log('Bust size and position updated:');
         console.log('- Scale:', this.bustoModel.scale);
         console.log('- Position:', this.bustoModel.position);
-        console.log('- Camera:', this.camera.position);
     }
 
     loadModels() {
@@ -416,10 +411,6 @@ class Scene {
                 
                 // Configure scale and position using responsive sizing
                 this.updateBustoSize();
-                
-                // Make sure camera is properly positioned to look at the bust
-                this.camera.position.set(0, -5, 15);
-                this.camera.lookAt(0, -6, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
@@ -488,10 +479,6 @@ class Scene {
                 // Configure scale and position
                 this.updateBustoSize();
                 
-                // Make sure camera is properly positioned to look at the bust
-                this.camera.position.set(0, -5, 15);
-                this.camera.lookAt(0, -6, 0);
-                
                 // Mark as loaded
                 this.bustoLoaded = true;
                 
@@ -521,13 +508,13 @@ class Scene {
             
             const angle = obj.userData.initialAngle + time * obj.userData.rotationSpeed;
             const radius = obj.userData.radius;
-            const verticalCenter = obj.userData.verticalCenter || -3;
+            const verticalCenter = obj.userData.verticalCenter || 0;
             
             // Position in a perfect circle around the center
             obj.position.x = Math.cos(angle) * radius;
             obj.position.z = Math.sin(angle) * radius;
             
-            // Small vertical fluctuation (centered around the bust position)
+            // Small vertical fluctuation (centered around y=0)
             obj.position.y = verticalCenter + Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
             
             // Rotation of spheres on their own axis
@@ -606,16 +593,6 @@ class Scene {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // Ensure camera is still looking at the centered position
-        this.camera.position.set(0, -5, 15);
-        this.camera.lookAt(0, -6, 0);
-        
-        // Ensure controls target is still set correctly
-        if (this.controls) {
-            this.controls.target.set(0, -6, 0);
-            this.controls.update();
-        }
         
         if (this.bustoLoaded && this.bustoModel) {
             this.updateBustoSize();
