@@ -358,8 +358,8 @@ class Scene {
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust LOWER in the scene to account for model's internal coordinate system
-        this.bustoModel.position.set(0, -4, 0); // Move down significantly
+        // Position bust MUCH LOWER in the scene to account for model's internal coordinate system
+        this.bustoModel.position.set(0, -12, 0); // Moved significantly down (equivalent to ~400px)
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
