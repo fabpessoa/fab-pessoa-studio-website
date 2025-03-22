@@ -238,8 +238,8 @@ class Scene {
         return new Promise((resolve, reject) => {
             console.log('Loading champagne bottle model...');
             
-            // Try to load the bottle model
-            const bottlePath = '/assets/models/bottle/Pbr/base_basic_pbr.glb';
+            // Try to load the shaded bottle model instead of PBR
+            const bottlePath = '/assets/models/bottle/Shaded/base_basic_shaded.glb';
             
             new GLTFLoader().load(
                 bottlePath,
@@ -250,9 +250,8 @@ class Scene {
                     // Adjust scale and position - increase size and ensure proper orientation
                     bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
                     
-                    // New approach to rotate bottle upright
-                    // Try combination of rotations in all three axes
-                    bottleModel.rotation.set(0, Math.PI, 0); // First reset and rotate 180 on y-axis
+                    // Try another approach for rotation, a negative X rotation often makes models stand upright
+                    bottleModel.rotation.x = -Math.PI/2;
                     
                     // Position the bottle initially at the first orbital position
                     const angle = 0; // Starting angle
@@ -260,7 +259,7 @@ class Scene {
                     
                     bottleModel.position.x = Math.cos(angle) * radius;
                     bottleModel.position.z = Math.sin(angle) * radius;
-                    bottleModel.position.y = -1; // Position slightly lower to compensate for model height
+                    bottleModel.position.y = -0.5; // Adjusted for better vertical positioning
                     
                     // Set render order
                     bottleModel.renderOrder = 3;
