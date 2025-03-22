@@ -508,11 +508,14 @@ class Scene {
         if (!this.debugRan) {
             console.log('DEBUG: Renderer settings', {
                 alpha: this.renderer.alpha,
-                clearColor: this.renderer.getClearColor(),
-                clearAlpha: this.renderer.getClearAlpha(),
+                clearColor: this.renderer && typeof this.renderer.getClearColor === 'function' 
+                    ? this.renderer.getClearColor(new THREE.Color()) : 'Not available',
+                clearAlpha: this.renderer && typeof this.renderer.getClearAlpha === 'function'
+                    ? this.renderer.getClearAlpha() : 'Not available',
                 sceneBackground: this.scene.background,
                 domElementStyle: {
-                    backgroundColor: this.renderer.domElement.style.backgroundColor
+                    backgroundColor: this.renderer && this.renderer.domElement 
+                        ? this.renderer.domElement.style.backgroundColor : 'Not available'
                 }
             });
             this.debugRan = true;
