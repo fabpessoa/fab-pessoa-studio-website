@@ -259,12 +259,10 @@ class Scene {
                     // Adjust scale of the group
                     bottleGroup.scale.set(0.7, 0.7, 0.7);
                     
-                    // Apply a series of rotations to the group to find the right orientation
-                    // Rotate around X first (this is usually the "up" direction for standing objects)
-                    bottleGroup.rotateX(-Math.PI / 2);
-                    
-                    // Add slight tilt for a more natural look
-                    bottleGroup.rotateZ(Math.PI);
+                    // Fix the Y axis problem by applying the correct rotation sequence
+                    // Y-up to Y-up transformation
+                    bottleGroup.rotation.set(0, 0, 0); // Reset rotations
+                    bottleGroup.rotateY(Math.PI); // 180 degrees around Y axis to make it face the right way
                     
                     // Position the group
                     const angle = 0; // Starting angle
