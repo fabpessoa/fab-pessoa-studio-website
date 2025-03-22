@@ -123,8 +123,8 @@ class Scene {
         this.controls.maxDistance = 30;
         this.controls.minDistance = 5;
         
-        // Set default target to center
-        this.controls.target.set(0, 0, 0);
+        // Set target to the bust position
+        this.controls.target.set(0, -3, 0);
         this.controls.update();
     }
 
@@ -357,8 +357,8 @@ class Scene {
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust at center of scene
-        this.bustoModel.position.set(0, 0, 0);
+        // Position bust at center of scene but moved down
+        this.bustoModel.position.set(0, -3, 0); // Move down by 3 units
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
@@ -366,8 +366,8 @@ class Scene {
         this.bustoModel.rotation.z = 0;
         
         // Reset camera position to directly face the bust
-        this.camera.position.set(0, 0, 15);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.position.set(0, -2, 15); // Move camera down to follow bust
+        this.camera.lookAt(0, -3, 0); // Look at the bust's new position
         
         console.log('Bust size and position updated:');
         console.log('- Scale:', this.bustoModel.scale);
@@ -416,9 +416,9 @@ class Scene {
                 // Configure scale and position using responsive sizing
                 this.updateBustoSize();
                 
-                // Make sure camera is properly positioned
-                this.camera.position.set(0, 0, 15);
-                this.camera.lookAt(0, 0, 0);
+                // Make sure camera is properly positioned to look at the bust
+                this.camera.position.set(0, -2, 15);
+                this.camera.lookAt(0, -3, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
@@ -487,9 +487,9 @@ class Scene {
                 // Configure scale and position
                 this.updateBustoSize();
                 
-                // Make sure camera is properly positioned
-                this.camera.position.set(0, 0, 15);
-                this.camera.lookAt(0, 0, 0);
+                // Make sure camera is properly positioned to look at the bust
+                this.camera.position.set(0, -2, 15);
+                this.camera.lookAt(0, -3, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
