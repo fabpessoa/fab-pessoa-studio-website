@@ -358,8 +358,8 @@ class Scene {
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust at a level where it's visible in viewport
-        this.bustoModel.position.set(0, -4, 0); // Adjusted position
+        // Position bust lower to show more of the face
+        this.bustoModel.position.set(0, -8, 0); // Moved down further to show more of the face
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
