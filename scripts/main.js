@@ -348,18 +348,18 @@ class Scene {
         const isLandscape = window.innerWidth > window.innerHeight;
         let scale;
         
-        // Calculate appropriate scale based on viewport but MUCH smaller
+        // Calculate appropriate scale based on viewport but slightly smaller
         if (isLandscape) {
-            scale = window.innerHeight * 0.8 / 30; // Greatly reduced scale (divided by 30 instead of 10)
+            scale = window.innerHeight * 0.7 / 30; // Reduced from 0.8 to 0.7 to create margins
         } else {
-            scale = window.innerWidth * 0.8 / 30; // Greatly reduced scale for mobile
+            scale = window.innerWidth * 0.7 / 30; // Reduced from 0.8 to 0.7 for mobile
         }
         
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
         // Position bust lower to show more of the face
-        this.bustoModel.position.set(0, -8, 0); // Moved down further to show more of the face
+        this.bustoModel.position.set(0, -8, 0); // Keeping same vertical position
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
