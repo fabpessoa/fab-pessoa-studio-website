@@ -250,9 +250,9 @@ class Scene {
                     // Adjust scale and position - increase size and ensure proper orientation
                     bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
                     
-                    // Rotate the bottle to stand upright
-                    // Adjust rotation to make bottle stand straight up
-                    bottleModel.rotation.set(0, 0, 0); // Reset rotation
+                    // Try different rotation approach to make bottle stand upright
+                    // For GLB models that are laid horizontally by default
+                    bottleModel.rotation.x = Math.PI / 2; // Rotate 90 degrees in the other direction
                     
                     // Position the bottle initially at the first orbital position
                     const angle = 0; // Starting angle
@@ -606,8 +606,8 @@ class Scene {
                 // Gentle bobbing motion - slightly different frequency than spheres
                 obj.position.y = verticalCenter - 1 + Math.sin(time * 0.3) * 0.3;
                 
-                // Gentle spin around its axis
-                obj.rotation.z += 0.001; // Very subtle spin
+                // Gentle spin around vertical axis for upright bottle
+                obj.rotation.y += 0.001; // Very subtle spin around vertical axis
             } else {
                 // Regular sphere animation
                 // Small vertical fluctuation (centered around y=0)
