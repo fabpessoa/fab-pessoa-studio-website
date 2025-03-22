@@ -238,7 +238,10 @@ class Scene {
         return new Promise((resolve, reject) => {
             console.log('Loading champagne bottle model...');
             
-            // Try to load the shaded bottle model instead of PBR
+            // Create a group to contain the bottle - this makes rotation manipulation easier
+            const bottleGroup = new THREE.Group();
+            
+            // Try to load the shaded bottle model
             const bottlePath = '/assets/models/bottle/Shaded/base_basic_shaded.glb';
             
             new GLTFLoader().load(
@@ -247,30 +250,49 @@ class Scene {
                     console.log('Bottle model loaded successfully!');
                     const bottleModel = gltf.scene;
                     
-                    // Adjust scale and position - increase size and ensure proper orientation
-                    bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
+                    // Reset rotation of the model itself
+                    bottleModel.rotation.set(0, 0, 0);
                     
-                    // Try another approach for rotation, a negative X rotation often makes models stand upright
-                    bottleModel.rotation.x = -Math.PI/2;
+                    // Add model to group
+                    bottleGroup.add(bottleModel);
                     
-                    // Position the bottle initially at the first orbital position
+                    // Adjust scale of the group
+                    bottleGroup.scale.set(0.7, 0.7, 0.7);
+                    
+                    // Apply a series of rotations to the group to find the right orientation
+                    // Rotate around X first (this is usually the "up" direction for standing objects)
+                    bottleGroup.rotateX(-Math.PI / 2);
+                    
+                    // Add slight tilt for a more natural look
+                    bottleGroup.rotateZ(Math.PI);
+                    
+                    // Position the group
                     const angle = 0; // Starting angle
                     const radius = 5; // Same radius as other objects
                     
-                    bottleModel.position.x = Math.cos(angle) * radius;
-                    bottleModel.position.z = Math.sin(angle) * radius;
-                    bottleModel.position.y = -0.5; // Adjusted for better vertical positioning
+                    bottleGroup.position.x = Math.cos(angle) * radius;
+                    bottleGroup.position.z = Math.sin(angle) * radius;
+                    bottleGroup.position.y = -0.5; // Adjusted for better vertical positioning
                     
                     // Set render order
-                    bottleModel.renderOrder = 3;
+                    bottleGroup.renderOrder = 3;
+                    
+                    // Mark the group with the same userData as we would a single object
+                    bottleGroup.userData = { 
+                        initialAngle: 0,
+                        radius: radius,
+                        rotationSpeed: 0.2,
+                        verticalCenter: 0,
+                        isBottle: true
+                    };
                     
                     // Log details for debugging
-                    console.log('Bottle model orientation after adjustment:');
-                    console.log('- Rotation:', bottleModel.rotation);
-                    console.log('- Position:', bottleModel.position);
-                    console.log('- Scale:', bottleModel.scale);
+                    console.log('Bottle group after transformations:');
+                    console.log('- Group rotation:', bottleGroup.rotation);
+                    console.log('- Group position:', bottleGroup.position);
+                    console.log('- Group scale:', bottleGroup.scale);
                     
-                    resolve(bottleModel);
+                    resolve(bottleGroup);
                 },
                 (xhr) => {
                     const percent = Math.round((xhr.loaded / xhr.total) * 100);
@@ -607,12 +629,12 @@ class Scene {
             obj.position.z = Math.sin(angle) * radius;
             
             if (obj.userData.isBottle) {
-                // Special animation for the bottle
+                // Special animation for the bottle group
                 // Gentle bobbing motion - slightly different frequency than spheres
-                obj.position.y = verticalCenter - 1 + Math.sin(time * 0.3) * 0.3;
+                obj.position.y = verticalCenter - 0.5 + Math.sin(time * 0.3) * 0.3;
                 
-                // Gentle spin around vertical axis for upright bottle
-                obj.rotation.y += 0.001; // Very subtle spin around vertical axis
+                // For bottles, we rotate the group on Y axis (which is now the vertical axis of the bottle)
+                obj.rotateY(0.001); // Very subtle spin
             } else {
                 // Regular sphere animation
                 // Small vertical fluctuation (centered around y=0)
