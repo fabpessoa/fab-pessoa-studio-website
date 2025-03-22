@@ -350,16 +350,16 @@ class Scene {
         
         // Calculate appropriate scale based on viewport but slightly smaller
         if (isLandscape) {
-            scale = window.innerHeight * 0.7 / 30; // Reduced from 0.8 to 0.7 to create margins
+            scale = window.innerHeight * 0.56 / 30; // Reduced by 20% from 0.7 to 0.56
         } else {
-            scale = window.innerWidth * 0.7 / 30; // Reduced from 0.8 to 0.7 for mobile
+            scale = window.innerWidth * 0.56 / 30; // Reduced by 20% from 0.7 to 0.56
         }
         
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
         // Position bust to center the face both vertically and horizontally
-        this.bustoModel.position.set(2, -6, 0); // Moved up and slightly right for better centering
+        this.bustoModel.position.set(0, -6, 0); // Centered horizontally (x=0)
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
