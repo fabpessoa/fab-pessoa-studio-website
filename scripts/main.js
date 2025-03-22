@@ -247,8 +247,11 @@ class Scene {
                     console.log('Bottle model loaded successfully!');
                     const bottleModel = gltf.scene;
                     
-                    // Adjust scale and position
-                    bottleModel.scale.set(0.5, 0.5, 0.5); // Adjust scale as needed
+                    // Adjust scale and position - increase size and ensure proper orientation
+                    bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
+                    
+                    // Rotate the bottle to stand upright
+                    bottleModel.rotation.x = -Math.PI / 2; // Rotate to make it stand upright
                     
                     // Position the bottle initially at the first orbital position
                     const angle = 0; // Starting angle
@@ -256,7 +259,7 @@ class Scene {
                     
                     bottleModel.position.x = Math.cos(angle) * radius;
                     bottleModel.position.z = Math.sin(angle) * radius;
-                    bottleModel.position.y = 0;
+                    bottleModel.position.y = -1; // Position slightly lower to compensate for model height
                     
                     // Set render order
                     bottleModel.renderOrder = 3;
@@ -597,14 +600,20 @@ class Scene {
             obj.position.x = Math.cos(angle) * radius;
             obj.position.z = Math.sin(angle) * radius;
             
-            // Small vertical fluctuation (centered around y=0)
-            obj.position.y = verticalCenter + Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
-            
-            // Rotation of spheres on their own axis
-            obj.rotation.y += 0.01;
-            
-            if (!obj.userData.isBottle) {
-                // Only apply additional x rotation to spheres, not the bottle
+            if (obj.userData.isBottle) {
+                // Special animation for the bottle
+                // Gentle bobbing motion - slightly different frequency than spheres
+                obj.position.y = verticalCenter - 1 + Math.sin(time * 0.3) * 0.3;
+                
+                // Gentle spin around its axis
+                obj.rotation.z += 0.001; // Very subtle spin
+            } else {
+                // Regular sphere animation
+                // Small vertical fluctuation (centered around y=0)
+                obj.position.y = verticalCenter + Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
+                
+                // Rotation of spheres on their own axis
+                obj.rotation.y += 0.01;
                 obj.rotation.x += 0.005;
             }
         });
