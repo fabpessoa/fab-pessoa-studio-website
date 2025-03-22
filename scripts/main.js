@@ -63,11 +63,11 @@ class Scene {
             1000
         );
         
-        // Position camera to view the center of the scene at y=-3
-        this.camera.position.set(0, -3, 15); // Aligned with bust position
-        this.camera.lookAt(0, -3, 0); // Look at the center point where bust and spheres are
+        // Position camera to view the center of the scene at y=-6
+        this.camera.position.set(0, -5, 15); // Aligned with bust position
+        this.camera.lookAt(0, -6, 0); // Look at the center point where bust is
         
-        console.log('Camera positioned at:', this.camera.position, 'looking at (0,-3,0)');
+        console.log('Camera positioned at:', this.camera.position, 'looking at (0,-6,0)');
         
         // Create renderer with alpha for transparency
         this.renderer = new THREE.WebGLRenderer({ 
@@ -124,7 +124,7 @@ class Scene {
         this.controls.minDistance = 5;
         
         // Set target to the bust position
-        this.controls.target.set(0, -3, 0);
+        this.controls.target.set(0, -6, 0);
         this.controls.update();
     }
 
@@ -358,8 +358,8 @@ class Scene {
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust at center of scene but moved down
-        this.bustoModel.position.set(0, -3, 0); // Move down by 3 units
+        // Position bust lower to compensate for model's internal origin offset
+        this.bustoModel.position.set(0, -6, 0); // Move down by 6 units instead of 3
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
@@ -367,8 +367,8 @@ class Scene {
         this.bustoModel.rotation.z = 0;
         
         // Reset camera position to directly face the bust
-        this.camera.position.set(0, -2, 15); // Move camera down to follow bust
-        this.camera.lookAt(0, -3, 0); // Look at the bust's new position
+        this.camera.position.set(0, -5, 15); // Move camera down to follow bust
+        this.camera.lookAt(0, -6, 0); // Look at the bust's new position
         
         console.log('Bust size and position updated:');
         console.log('- Scale:', this.bustoModel.scale);
@@ -418,8 +418,8 @@ class Scene {
                 this.updateBustoSize();
                 
                 // Make sure camera is properly positioned to look at the bust
-                this.camera.position.set(0, -2, 15);
-                this.camera.lookAt(0, -3, 0);
+                this.camera.position.set(0, -5, 15);
+                this.camera.lookAt(0, -6, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
@@ -489,8 +489,8 @@ class Scene {
                 this.updateBustoSize();
                 
                 // Make sure camera is properly positioned to look at the bust
-                this.camera.position.set(0, -2, 15);
-                this.camera.lookAt(0, -3, 0);
+                this.camera.position.set(0, -5, 15);
+                this.camera.lookAt(0, -6, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
@@ -608,12 +608,12 @@ class Scene {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         
         // Ensure camera is still looking at the centered position
-        this.camera.position.set(0, -3, 15);
-        this.camera.lookAt(0, -3, 0);
+        this.camera.position.set(0, -5, 15);
+        this.camera.lookAt(0, -6, 0);
         
         // Ensure controls target is still set correctly
         if (this.controls) {
-            this.controls.target.set(0, -3, 0);
+            this.controls.target.set(0, -6, 0);
             this.controls.update();
         }
         
