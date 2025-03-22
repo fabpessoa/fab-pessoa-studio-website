@@ -54,18 +54,18 @@ class Scene {
         this.scene.background = null;
         console.log('Scene background set to transparent (null)');
         
-        // Create camera
+        // Create camera with correct aspect ratio
+        const aspect = window.innerWidth / window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(
             45,
-            window.innerWidth / window.innerHeight,
+            aspect,
             0.1,
             1000
         );
         
-        // Position camera to better view the bust
-        this.camera.position.z = 15;
-        this.camera.position.y = 2; // Slightly above to look at bust from above
-        this.camera.lookAt(0, 0, 0);
+        // Position camera to view the center of the scene
+        this.camera.position.set(0, 0, 15); // Directly in front
+        this.camera.lookAt(0, 0, 0); // Look at the center
         
         console.log('Camera positioned at:', this.camera.position);
         
@@ -98,6 +98,17 @@ class Scene {
             
             // Force the container to have a transparent background
             this.container.style.backgroundColor = 'transparent';
+            
+            // Ensure container is properly positioned for centering
+            this.container.style.position = 'fixed';
+            this.container.style.top = '0';
+            this.container.style.left = '0';
+            this.container.style.width = '100%';
+            this.container.style.height = '100%';
+            this.container.style.display = 'flex';
+            this.container.style.justifyContent = 'center';
+            this.container.style.alignItems = 'center';
+            this.container.style.overflow = 'hidden';
         } else {
             console.warn('Container not found, adding to body');
             document.body.appendChild(this.renderer.domElement);
@@ -111,6 +122,10 @@ class Scene {
         this.controls.dampingFactor = 0.05;
         this.controls.maxDistance = 30;
         this.controls.minDistance = 5;
+        
+        // Set default target to center
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
     }
 
     setupEventListeners() {
@@ -145,12 +160,23 @@ class Scene {
         // Configure scene for reflections
         this.scene.environment = pmremGenerator.fromScene(new THREE.Scene()).texture;
         
+        // Clear any existing orbital objects
+        this.orbitalObjects.forEach(obj => {
+            if (obj && this.scene) {
+                this.scene.remove(obj);
+            }
+        });
+        this.orbitalObjects = [];
+        
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
             const sphere = new THREE.Mesh(sphereGeometry, brushedMetalMaterial.clone());
             
+            // Position spheres in a circle around the center
             sphere.position.x = Math.cos(angle) * radius;
             sphere.position.z = Math.sin(angle) * radius;
+            sphere.position.y = 0; // Centered vertically
+            
             sphere.renderOrder = 3; // Higher than bust to ensure proper rendering
             sphere.userData = { 
                 initialAngle: angle,
@@ -161,6 +187,8 @@ class Scene {
             this.orbitalObjects.push(sphere);
             this.scene.add(sphere);
         }
+        
+        console.log(`Created ${count} orbital spheres centered at (0,0,0) with radius ${radius}`);
     }
 
     setupLights() {
@@ -317,30 +345,28 @@ class Scene {
         }
         
         const isLandscape = window.innerWidth > window.innerHeight;
+        let scale;
         
+        // Calculate appropriate scale based on viewport
         if (isLandscape) {
-            // Desktop and landscape: center and 80% of viewport height
-            const scale = window.innerHeight * 0.8 / 10; // Reduced divisor for larger size
-            this.bustoModel.scale.set(scale, scale, scale);
-            
-            // Ensure bust is centered
-            this.bustoModel.position.set(0, 0, 0);
+            scale = window.innerHeight * 0.6 / 10; // Scaled for visibility
         } else {
-            // Mobile and portrait: center and 80% of viewport width
-            const scale = window.innerWidth * 0.8 / 10; // Reduced divisor for larger size
-            this.bustoModel.scale.set(scale, scale, scale);
-            
-            // Ensure bust is centered
-            this.bustoModel.position.set(0, 0, 0);
+            scale = window.innerWidth * 0.6 / 10; // Scaled for visibility on mobile
         }
-
-        // Reset rotation to face forward
+        
+        // Apply scale uniformly
+        this.bustoModel.scale.set(scale, scale, scale);
+        
+        // Position bust at center of scene
+        this.bustoModel.position.set(0, 0, 0);
+        
+        // Reset rotation
         this.bustoModel.rotation.x = 0;
         this.bustoModel.rotation.y = 0;
         this.bustoModel.rotation.z = 0;
         
-        // Adjust camera to ensure bust is centered in view
-        this.camera.position.set(0, 2, 15);
+        // Reset camera position to directly face the bust
+        this.camera.position.set(0, 0, 15);
         this.camera.lookAt(0, 0, 0);
         
         console.log('Bust size and position updated:');
@@ -390,8 +416,8 @@ class Scene {
                 // Configure scale and position using responsive sizing
                 this.updateBustoSize();
                 
-                // Make sure camera is properly positioned to center the bust
-                this.camera.position.set(0, 2, 15);
+                // Make sure camera is properly positioned
+                this.camera.position.set(0, 0, 15);
                 this.camera.lookAt(0, 0, 0);
                 
                 // Mark as loaded
@@ -462,7 +488,7 @@ class Scene {
                 this.updateBustoSize();
                 
                 // Make sure camera is properly positioned
-                this.camera.position.set(0, 2, 15);
+                this.camera.position.set(0, 0, 15);
                 this.camera.lookAt(0, 0, 0);
                 
                 // Mark as loaded
@@ -495,10 +521,11 @@ class Scene {
             const angle = obj.userData.initialAngle + time * obj.userData.rotationSpeed;
             const radius = obj.userData.radius;
             
+            // Position in a perfect circle around the center
             obj.position.x = Math.cos(angle) * radius;
             obj.position.z = Math.sin(angle) * radius;
             
-            // Small vertical fluctuation
+            // Small vertical fluctuation (centered around y=0)
             obj.position.y = Math.sin(time * 0.5 + obj.userData.initialAngle) * 0.5;
             
             // Rotation of spheres on their own axis
