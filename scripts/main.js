@@ -251,7 +251,8 @@ class Scene {
                     bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
                     
                     // Rotate the bottle to stand upright
-                    bottleModel.rotation.x = -Math.PI / 2; // Rotate to make it stand upright
+                    // Adjust rotation to make bottle stand straight up
+                    bottleModel.rotation.set(0, 0, 0); // Reset rotation
                     
                     // Position the bottle initially at the first orbital position
                     const angle = 0; // Starting angle
