@@ -348,18 +348,18 @@ class Scene {
         const isLandscape = window.innerWidth > window.innerHeight;
         let scale;
         
-        // Calculate appropriate scale based on viewport
+        // Calculate appropriate scale based on viewport (80% as requested)
         if (isLandscape) {
-            scale = window.innerHeight * 0.6 / 10; // Scaled for visibility
+            scale = window.innerHeight * 0.8 / 10; // 80% of viewport height
         } else {
-            scale = window.innerWidth * 0.6 / 10; // Scaled for visibility on mobile
+            scale = window.innerWidth * 0.8 / 10; // 80% of viewport width on mobile
         }
         
         // Apply scale uniformly
         this.bustoModel.scale.set(scale, scale, scale);
         
-        // Position bust MUCH LOWER in the scene to account for model's internal coordinate system
-        this.bustoModel.position.set(0, -24, 0); // Moved down another 400px (total -800px equivalent)
+        // Position bust at a level where it's visible in viewport
+        this.bustoModel.position.set(0, -12, 0); // Adjusted position
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
