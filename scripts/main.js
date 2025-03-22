@@ -323,20 +323,30 @@ class Scene {
             const scale = window.innerHeight * 0.8 / 10; // Reduced divisor for larger size
             this.bustoModel.scale.set(scale, scale, scale);
             
-            // Center (position bust more prominently)
+            // Ensure bust is centered
             this.bustoModel.position.set(0, 0, 0);
         } else {
             // Mobile and portrait: center and 80% of viewport width
             const scale = window.innerWidth * 0.8 / 10; // Reduced divisor for larger size
             this.bustoModel.scale.set(scale, scale, scale);
             
-            // Center position but slightly higher in portrait mode
+            // Ensure bust is centered
             this.bustoModel.position.set(0, 0, 0);
         }
+
+        // Reset rotation to face forward
+        this.bustoModel.rotation.x = 0;
+        this.bustoModel.rotation.y = 0;
+        this.bustoModel.rotation.z = 0;
         
-        console.log('Bust size updated based on orientation:', isLandscape ? 'landscape' : 'portrait');
+        // Adjust camera to ensure bust is centered in view
+        this.camera.position.set(0, 2, 15);
+        this.camera.lookAt(0, 0, 0);
+        
+        console.log('Bust size and position updated:');
         console.log('- Scale:', this.bustoModel.scale);
         console.log('- Position:', this.bustoModel.position);
+        console.log('- Camera:', this.camera.position);
     }
 
     loadModels() {
@@ -380,9 +390,8 @@ class Scene {
                 // Configure scale and position using responsive sizing
                 this.updateBustoSize();
                 
-                // Adjust camera to make sure bust is visible
-                this.camera.position.z = 20;
-                this.camera.position.y = 0;
+                // Make sure camera is properly positioned to center the bust
+                this.camera.position.set(0, 2, 15);
                 this.camera.lookAt(0, 0, 0);
                 
                 // Mark as loaded
@@ -452,8 +461,9 @@ class Scene {
                 // Configure scale and position
                 this.updateBustoSize();
                 
-                // Adjust camera
-                this.camera.position.z = 20;
+                // Make sure camera is properly positioned
+                this.camera.position.set(0, 2, 15);
+                this.camera.lookAt(0, 0, 0);
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
