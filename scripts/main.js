@@ -23,10 +23,10 @@ class Scene {
         
         // Variables for head animation
         this.headAnimation = {
-            time: 0,           // Animation elapsed time
-            speed: 0.5,        // Animation speed
-            amplitude: 0.05,   // Maximum amplitude in radians
-            active: true       // Control to enable/disable animation
+            active: true,
+            speed: 0.5, // Speed of rotation animation
+            amplitude: 0.25, // Maximum rotation angle (in radians)
+            time: 0 // Track animation time
         };
         
         // Initial setup
@@ -557,36 +557,49 @@ class Scene {
                         ? this.renderer.domElement.style.backgroundColor : 'Not available'
                 }
             });
+            
+            // Add a position debug message
+            console.log('DEBUG: Scene positions', {
+                camera: this.camera ? this.camera.position.toArray() : 'Not available',
+                cameraTarget: this.controls ? this.controls.target.toArray() : 'Not available',
+                bust: this.bustoModel ? this.bustoModel.position.toArray() : 'Not available',
+                spheres: this.orbitalObjects && this.orbitalObjects.length > 0 
+                    ? this.orbitalObjects[0].position.toArray() : 'Not available'
+            });
             this.debugRan = true;
         }
         
-        // Update bust if loaded
-        if (this.bustoLoaded && this.bustoModel) {
-            this.updateBustoRotation(currentTime);
+        // Only update orbital objects if they exist
+        if (this.orbitalObjects && this.orbitalObjects.length > 0) {
+            this.updateOrbitalObjects();
         }
         
-        // Update orbital spheres
-        this.updateOrbitalObjects();
+        // Update bust rotation if needed
+        if (this.bustoLoaded && this.bustoModel) {
+            this.updateBustoRotation(deltaTime);
+        }
         
-        // Update controls
+        // Update controls if they exist
         if (this.controls) {
             this.controls.update();
         }
         
-        // Render scene
         this.renderer.render(this.scene, this.camera);
     }
 
-    updateBustoRotation(currentTime) {
+    updateBustoRotation(deltaTime) {
         // Check if bust has active animation
         if (!this.headAnimation || !this.headAnimation.active) return;
         
         // Calculate rotation using sine for smooth and continuous movement
-        const time = currentTime * 0.001 * this.headAnimation.speed;
+        const time = this.headAnimation.time + deltaTime * this.headAnimation.speed;
         const rotation = Math.sin(time) * this.headAnimation.amplitude;
         
         // Apply rotation
         this.bustoModel.rotation.y = rotation;
+        
+        // Update animation time
+        this.headAnimation.time = time;
     }
     
     resize() {
