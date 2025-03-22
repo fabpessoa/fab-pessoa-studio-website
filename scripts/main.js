@@ -250,9 +250,9 @@ class Scene {
                     // Adjust scale and position - increase size and ensure proper orientation
                     bottleModel.scale.set(0.7, 0.7, 0.7); // Larger scale for better visibility
                     
-                    // Try different rotation approach to make bottle stand upright
-                    // For GLB models that are laid horizontally by default
-                    bottleModel.rotation.x = Math.PI / 2; // Rotate 90 degrees in the other direction
+                    // New approach to rotate bottle upright
+                    // Try combination of rotations in all three axes
+                    bottleModel.rotation.set(0, Math.PI, 0); // First reset and rotate 180 on y-axis
                     
                     // Position the bottle initially at the first orbital position
                     const angle = 0; // Starting angle
@@ -264,6 +264,12 @@ class Scene {
                     
                     // Set render order
                     bottleModel.renderOrder = 3;
+                    
+                    // Log details for debugging
+                    console.log('Bottle model orientation after adjustment:');
+                    console.log('- Rotation:', bottleModel.rotation);
+                    console.log('- Position:', bottleModel.position);
+                    console.log('- Scale:', bottleModel.scale);
                     
                     resolve(bottleModel);
                 },
