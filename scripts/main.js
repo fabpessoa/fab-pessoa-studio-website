@@ -359,7 +359,7 @@ class Scene {
         this.bustoModel.scale.set(scale, scale, scale);
         
         // Position bust to center the face both vertically and horizontally
-        this.bustoModel.position.set(-1, -6, 0); // Moved slightly to the left
+        this.bustoModel.position.set(1, -6, 0); // Moved slightly to the right
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
