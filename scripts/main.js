@@ -354,100 +354,136 @@ class Scene {
     }
 
     setupLightControls() {
-        // Set up light controls
-        const updateValue = (element, value) => {
-            const valueSpan = element.parentElement.querySelector('.value');
-            if (valueSpan) {
-                valueSpan.textContent = parseFloat(value).toFixed(2);
+        console.log('Setting up light controls...');
+        
+        // Get all slider elements
+        const mainLightSlider = document.getElementById('mainLight');
+        const fillLightSlider = document.getElementById('fillLight');
+        const ambientLightSlider = document.getElementById('ambientLight');
+        const rimLightSlider = document.getElementById('rimLight');
+        const bustSizeSlider = document.getElementById('bustSize');
+        const bustVerticalSlider = document.getElementById('bustVertical');
+        const bustHorizontalSlider = document.getElementById('bustHorizontal');
+        const colorSaturationSlider = document.getElementById('colorSaturation');
+        const materialRoughnessSlider = document.getElementById('materialRoughness');
+
+        // Helper function to update value display
+        const updateValue = (slider) => {
+            if (!slider) return;
+            const valueDisplay = slider.parentElement.querySelector('.value');
+            if (valueDisplay) {
+                valueDisplay.textContent = parseFloat(slider.value).toFixed(1);
             }
         };
 
-        // Load saved settings
-        const savedSettings = localStorage.getItem('lightSettings');
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
+        // Helper function to update material properties
+        const updateMaterialProperties = () => {
+            if (!this.bustoModel) return;
             
-            // Update sliders and lights
-            const elements = {
-                mainLight: { slider: document.getElementById('mainLight'), light: this.lights.main },
-                fillLight: { slider: document.getElementById('fillLight'), light: this.lights.fill },
-                ambientLight: { slider: document.getElementById('ambientLight'), light: this.lights.ambient },
-                rimLight: { slider: document.getElementById('rimLight'), light: this.lights.rim }
-            };
-
-            Object.entries(settings).forEach(([key, value]) => {
-                const element = elements[key];
-                if (element && element.slider && element.light) {
-                    element.slider.value = value;
-                    element.light.intensity = value;
-                    updateValue(element.slider, value);
+            const saturation = parseFloat(colorSaturationSlider.value);
+            const roughness = parseFloat(materialRoughnessSlider.value);
+            
+            this.bustoModel.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    // Update material properties
+                    child.material.roughness = roughness;
+                    
+                    // Update color saturation using HSL
+                    const color = new THREE.Color();
+                    color.copy(child.material.color);
+                    const hsl = {};
+                    color.getHSL(hsl);
+                    color.setHSL(hsl.h, hsl.s * saturation, hsl.l);
+                    child.material.color = color;
+                    
+                    // Ensure material updates
+                    child.material.needsUpdate = true;
                 }
             });
-        }
-
-        // Main Light
-        const mainLightSlider = document.getElementById('mainLight');
-        if (mainLightSlider) {
-            mainLightSlider.addEventListener('input', (e) => {
-                this.lights.main.intensity = parseFloat(e.target.value);
-                updateValue(mainLightSlider, e.target.value);
-            });
-        }
-
-        // Fill Light
-        const fillLightSlider = document.getElementById('fillLight');
-        if (fillLightSlider) {
-            fillLightSlider.addEventListener('input', (e) => {
-                this.lights.fill.intensity = parseFloat(e.target.value);
-                updateValue(fillLightSlider, e.target.value);
-            });
-        }
-
-        // Ambient Light
-        const ambientLightSlider = document.getElementById('ambientLight');
-        if (ambientLightSlider) {
-            ambientLightSlider.addEventListener('input', (e) => {
-                this.lights.ambient.intensity = parseFloat(e.target.value);
-                updateValue(ambientLightSlider, e.target.value);
-            });
-        }
-
-        // Rim Light
-        const rimLightSlider = document.getElementById('rimLight');
-        if (rimLightSlider) {
-            rimLightSlider.addEventListener('input', (e) => {
-                this.lights.rim.intensity = parseFloat(e.target.value);
-                updateValue(rimLightSlider, e.target.value);
-            });
-        }
-
-        // Save Button
-        const saveButton = document.getElementById('saveLightSettings');
-        if (saveButton) {
-            saveButton.addEventListener('click', () => this.saveLightSettings());
-        }
-    }
-
-    saveLightSettings() {
-        const settings = {
-            mainLight: this.lights.main.intensity,
-            fillLight: this.lights.fill.intensity,
-            ambientLight: this.lights.ambient.intensity,
-            rimLight: this.lights.rim.intensity
         };
 
-        localStorage.setItem('lightSettings', JSON.stringify(settings));
-        
-        // Visual feedback
+        // Helper function to update bust transform
+        const updateBustTransform = () => {
+            if (!this.bustoModel) return;
+            
+            const size = parseFloat(bustSizeSlider.value);
+            const vertical = parseFloat(bustVerticalSlider.value);
+            const horizontal = parseFloat(bustHorizontalSlider.value);
+            
+            // Update position
+            this.bustoModel.position.y = vertical;
+            this.bustoModel.position.x = horizontal;
+            
+            // Update size while maintaining aspect ratio
+            this.bustoModel.scale.setScalar(size);
+        };
+
+        // Set up event listeners for all sliders
+        [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider].forEach(slider => {
+            if (!slider) return;
+            slider.addEventListener('input', (e) => {
+                updateValue(e.target);
+                this.updateLights();
+            });
+        });
+
+        // Set up event listeners for new controls
+        [bustSizeSlider, bustVerticalSlider, bustHorizontalSlider].forEach(slider => {
+            if (!slider) return;
+            slider.addEventListener('input', (e) => {
+                updateValue(e.target);
+                updateBustTransform();
+            });
+        });
+
+        [colorSaturationSlider, materialRoughnessSlider].forEach(slider => {
+            if (!slider) return;
+            slider.addEventListener('input', (e) => {
+                updateValue(e.target);
+                updateMaterialProperties();
+            });
+        });
+
+        // Initialize all value displays
+        [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider,
+         bustSizeSlider, bustVerticalSlider, bustHorizontalSlider,
+         colorSaturationSlider, materialRoughnessSlider].forEach(updateValue);
+
+        // Save button functionality
         const saveButton = document.getElementById('saveLightSettings');
-        const originalText = saveButton.textContent;
-        saveButton.textContent = 'Settings Saved!';
-        saveButton.style.background = '#45a049';
-        
-        setTimeout(() => {
-            saveButton.textContent = originalText;
-            saveButton.style.background = '#4CAF50';
-        }, 2000);
+        if (saveButton) {
+            saveButton.addEventListener('click', () => {
+                const settings = {
+                    mainLight: mainLightSlider.value,
+                    fillLight: fillLightSlider.value,
+                    ambientLight: ambientLightSlider.value,
+                    rimLight: rimLightSlider.value,
+                    bustSize: bustSizeSlider.value,
+                    bustVertical: bustVerticalSlider.value,
+                    bustHorizontal: bustHorizontalSlider.value,
+                    colorSaturation: colorSaturationSlider.value,
+                    materialRoughness: materialRoughnessSlider.value
+                };
+                localStorage.setItem('sceneSettings', JSON.stringify(settings));
+                console.log('Settings saved:', settings);
+            });
+        }
+
+        // Load saved settings
+        const savedSettings = localStorage.getItem('sceneSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            Object.entries(settings).forEach(([key, value]) => {
+                const slider = document.getElementById(key);
+                if (slider) {
+                    slider.value = value;
+                    updateValue(slider);
+                }
+            });
+            this.updateLights();
+            updateBustTransform();
+            updateMaterialProperties();
+        }
     }
 
     updateBustoSize() {
@@ -757,6 +793,26 @@ class Scene {
             ambientLight: 0.15,
             rimLight: 0.5
         };
+    }
+
+    updateLights() {
+        const mainLightSlider = document.getElementById('mainLight');
+        const fillLightSlider = document.getElementById('fillLight');
+        const ambientLightSlider = document.getElementById('ambientLight');
+        const rimLightSlider = document.getElementById('rimLight');
+
+        if (this.lights.main && mainLightSlider) {
+            this.lights.main.intensity = parseFloat(mainLightSlider.value);
+        }
+        if (this.lights.fill && fillLightSlider) {
+            this.lights.fill.intensity = parseFloat(fillLightSlider.value);
+        }
+        if (this.lights.ambient && ambientLightSlider) {
+            this.lights.ambient.intensity = parseFloat(ambientLightSlider.value);
+        }
+        if (this.lights.rim && rimLightSlider) {
+            this.lights.rim.intensity = parseFloat(rimLightSlider.value);
+        }
     }
 }
 
