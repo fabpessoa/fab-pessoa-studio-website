@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" href="favicon.png" type="image/png">
     <style>
         :root {
             --font-primary: 'Roboto', sans-serif;
@@ -271,6 +272,30 @@
             opacity: 1;
             z-index: 1;
             text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            width: auto;
+            max-width: 90%;
+        }
+
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: calc(100vw / 6); /* Reduced font size for better fit */
+                width: 80%;
+                left: var(--spacing-sm);
+                transform: none; /* Remove centering transform */
+                text-align: left;
+                top: var(--spacing-lg);
+                letter-spacing: -0.05em; /* Slightly reduce letter spacing on mobile */
+                line-height: 1; /* Increase line height for better readability */
+            }
+        }
+
+        /* Add additional breakpoint for very small screens */
+        @media (max-width: 480px) {
+            .site-title {
+                font-size: calc(100vw / 7); /* Even smaller font size for very small screens */
+                top: calc(var(--spacing-lg) / 2);
+                left: var(--spacing-sm);
+            }
         }
 
         .light-controls {

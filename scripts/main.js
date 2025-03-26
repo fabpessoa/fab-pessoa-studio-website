@@ -458,20 +458,45 @@ class Scene {
         }
         
         const isLandscape = window.innerWidth > window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         let scale;
         
-        // Calculate appropriate scale based on viewport but slightly smaller
+        // Breakpoint for transition (adjust based on your needs)
+        const mobileBreakpoint = 768;
+        
+        // Calculate scale with a smooth transition between mobile and desktop
         if (isLandscape) {
-            scale = window.innerHeight * 0.56 / 30; // Reduced by 20% from 0.7 to 0.56
+            // Desktop/landscape mode
+            scale = Math.min(viewportHeight * 0.56 / 30, viewportWidth * 0.4 / 30);
         } else {
-            scale = window.innerWidth * 0.56 / 30; // Reduced by 20% from 0.7 to 0.56
+            // Mobile/portrait mode - smoother transition
+            const transitionProgress = Math.min(viewportWidth / mobileBreakpoint, 1);
+            scale = (viewportWidth * 0.56 / 30) * transitionProgress;
         }
         
-        // Apply scale uniformly
-        this.bustoModel.scale.set(scale, scale, scale);
+        // Apply scale with smoothing
+        const currentScale = this.bustoModel.scale.x;
+        const smoothedScale = currentScale + (scale - currentScale) * 0.1;
+        this.bustoModel.scale.set(smoothedScale, smoothedScale, smoothedScale);
         
-        // Position bust to center the face both vertically and horizontally
-        this.bustoModel.position.set(1, -6, 0); // Moved slightly to the right
+        // Calculate vertical position with smooth transition
+        let verticalOffset;
+        if (isLandscape) {
+            // Desktop position
+            verticalOffset = -6;
+        } else {
+            // Mobile position with smooth transition
+            const baseOffset = -2;
+            const heightRatio = viewportHeight / 1080;
+            const transitionFactor = Math.min(viewportWidth / mobileBreakpoint, 1);
+            verticalOffset = baseOffset * heightRatio * (1 + transitionFactor);
+        }
+        
+        // Apply position with smoothing
+        const currentY = this.bustoModel.position.y;
+        const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
+        this.bustoModel.position.set(1, smoothedY, 0);
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;

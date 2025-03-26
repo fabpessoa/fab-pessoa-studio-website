@@ -16,6 +16,27 @@ app.use((req, res, next) => {
     next();
 });
 
+// Explicitly handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.sendFile(join(__dirname, 'favicon.ico'));
+});
+
+app.get('/Design%20System/favicon.ico', (req, res) => {
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.sendFile(join(__dirname, 'Design System', 'favicon.ico'));
+});
+
+// Set proper MIME types for favicons
+app.use((req, res, next) => {
+    if (req.path.endsWith('.ico')) {
+        res.type('image/x-icon');
+    } else if (req.path.endsWith('.png') && req.path.includes('favicon')) {
+        res.type('image/png');
+    }
+    next();
+});
+
 // Servir arquivos estáticos com cache-control
 app.use(express.static('.', {
     maxAge: '1y',
@@ -35,6 +56,11 @@ app.use('/node_modules', express.static(join(__dirname, 'node_modules'), {
 // Rota principal
 app.get('/', (req, res) => {
     res.sendFile(join(__dirname, 'index.html'));
+});
+
+// Design System route
+app.get('/design-system', (req, res) => {
+    res.sendFile(join(__dirname, 'Design System', 'index.html'));
 });
 
 // Iniciar servidor
