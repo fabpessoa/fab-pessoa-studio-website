@@ -407,16 +407,15 @@ class Scene {
         const updateBustTransform = () => {
             if (!this.bustoModel) return;
             
-            const size = parseFloat(bustSizeSlider.value);
+            // Remove direct reading of bustSizeSlider here
             const vertical = parseFloat(bustVerticalSlider.value);
             const horizontal = parseFloat(bustHorizontalSlider.value);
             
-            // Update position
+            // Update position ONLY
             this.bustoModel.position.y = vertical;
             this.bustoModel.position.x = horizontal;
             
-            // Update size while maintaining aspect ratio
-            this.bustoModel.scale.setScalar(size);
+            // Remove direct scaling here
         };
 
         // Set up event listeners for all sliders
@@ -440,7 +439,6 @@ class Scene {
         // Specific listener for bust size
         if (bustSizeSlider) {
             bustSizeSlider.addEventListener('input', (e) => {
-                console.log("[Debug] Bust Size Listener Entered"); // Simple entry log
                 updateValue(e.target);
                 const sliderValue = parseFloat(e.target.value);
                 this.userScale = sliderValue;
@@ -509,7 +507,6 @@ class Scene {
     }
 
     updateBustoSize() {
-        console.log("[Debug] updateBustoSize Function Entered"); // Simple entry log
         // Adjust bust size based on viewport orientation
         if (!this.bustoModel) {
             // console.log('Cannot update bust: model not found'); // Reduced noise
