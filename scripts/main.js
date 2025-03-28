@@ -411,21 +411,6 @@ class Scene {
             });
         };
 
-        // Helper function to update bust transform
-        const updateBustTransform = () => {
-            if (!this.bustoModel) return;
-            
-            // Remove direct reading of bustSizeSlider here
-            const vertical = parseFloat(bustVerticalSlider.value);
-            const horizontal = parseFloat(bustHorizontalSlider.value);
-            
-            // Update position ONLY
-            this.bustoModel.position.y = vertical;
-            this.bustoModel.position.x = horizontal;
-            
-            // Remove direct scaling here
-        };
-
         // Set up event listeners for all sliders
         [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider].forEach(slider => {
             if (!slider) return;
@@ -440,7 +425,7 @@ class Scene {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
                 updateValue(e.target);
-                updateBustTransform(); // Position only
+                this.updateBustTransform(); // Call as class method
             });
         });
 
@@ -514,10 +499,28 @@ class Scene {
             
             // Apply loaded settings
             this.updateLights();
-            updateBustTransform(); // Apply loaded positions
+            this.updateBustTransform(); // Call as class method
             updateMaterialProperties();
             this.updateBustoSize(); // Apply combined scale last
         }
+    }
+
+    updateBustTransform() {
+        if (!this.bustoModel) return;
+        
+        // Need to get sliders again OR pass them in OR store them on 'this'
+        // Let's re-get them for simplicity here, though storing might be better
+        const bustVerticalSlider = document.getElementById('bustVertical');
+        const bustHorizontalSlider = document.getElementById('bustHorizontal');
+
+        if (!bustVerticalSlider || !bustHorizontalSlider) return; // Guard clause
+
+        const vertical = parseFloat(bustVerticalSlider.value);
+        const horizontal = parseFloat(bustHorizontalSlider.value);
+        
+        // Update position ONLY
+        this.bustoModel.position.y = vertical;
+        this.bustoModel.position.x = horizontal;
     }
 
     updateBustoSize() {
@@ -622,7 +625,7 @@ class Scene {
                 this.scene.add(this.bustoModel);
                 
                 // Initial setup: Apply loaded positions first, then scale
-                updateBustTransform(); // Use updateBustTransform to apply saved/default position
+                this.updateBustTransform(); // Call as class method
                 this.updateBustoSize(); // Then apply combined scale
                 
                 // Mark as loaded
