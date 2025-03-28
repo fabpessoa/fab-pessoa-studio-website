@@ -37,7 +37,6 @@ class Scene {
         this.loadModels();
         this.createOrbitalSpheres();
         this.setupEventListeners();
-        this.setupLightControls();
         
         // Start rendering loop
         this.animate();
@@ -767,5 +766,6 @@ class Scene {
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, starting application...');
-    new Scene();
+    const myScene = new Scene();
+    myScene.setupLightControls();
 }); 
