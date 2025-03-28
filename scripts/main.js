@@ -553,7 +553,7 @@ class Scene {
         
         const loader = new GLTFLoader();
         loader.load(
-            'assets/models/busto2.glb',
+            'assets/models/busto.glb',
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
                 const model = gltf.scene; // The raw loaded model scene
