@@ -418,10 +418,10 @@
     <div class="light-controls collapsed">
         <button class="toggle-button">
             <span class="material-icons">expand_more</span>
-            Lighting
+            Controls
         </button>
         <div class="controls-content">
-            <h3>Lighting Controls</h3>
+            <h3>Lighting</h3>
             <div class="control-group">
                 <label>Main Light (Right)
                     <input type="range" id="mainLight" min="0" max="5" step="0.1" value="3">
@@ -442,8 +442,42 @@
             </div>
             <div class="control-group">
                 <label>Rim Light
-                    <input type="range" id="rimLight" min="0" max="2" step="0.1" value="0.5">
+                    <input type="range" id="rimLight" min="0" max="5" step="0.1" value="0.5">
                     <span class="value">0.5</span>
+                </label>
+            </div>
+
+            <h3 style="margin-top: 20px;">Model Adjustments</h3>
+            <div class="control-group">
+                <label>Bust Size
+                    <input type="range" id="bustSize" min="0.5" max="2" step="0.1" value="1">
+                    <span class="value">1.0</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Vertical Position
+                    <input type="range" id="bustVertical" min="-10" max="2" step="0.5" value="-6">
+                    <span class="value">-6.0</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Horizontal Position
+                    <input type="range" id="bustHorizontal" min="-5" max="5" step="0.5" value="1">
+                    <span class="value">1.0</span>
+                </label>
+            </div>
+
+            <h3 style="margin-top: 20px;">Material</h3>
+            <div class="control-group">
+                <label>Color Saturation
+                    <input type="range" id="colorSaturation" min="0" max="2" step="0.1" value="1">
+                    <span class="value">1.0</span>
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Material Roughness
+                    <input type="range" id="materialRoughness" min="0" max="1" step="0.1" value="0.7">
+                    <span class="value">0.7</span>
                 </label>
             </div>
             <button id="saveLightSettings" class="save-button">Save Settings</button>
