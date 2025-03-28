@@ -439,11 +439,17 @@ class Scene {
         // Specific listener for bust size
         if (bustSizeSlider) {
             bustSizeSlider.addEventListener('input', (e) => {
-                updateValue(e.target);
-                const sliderValue = parseFloat(e.target.value);
-                this.userScale = sliderValue;
-                console.log(`[Slider Input] Bust Size Slider: ${sliderValue}, Updated userScale: ${this.userScale}`);
-                this.updateBustoSize(); // Update scale considering user input
+                try {
+                    console.log('[Slider Input] Event triggered for bustSize'); // Log entry
+                    const slider = e.target;
+                    updateValue(slider); // Call to update the UI number
+                    const sliderValue = parseFloat(slider.value);
+                    this.userScale = sliderValue;
+                    console.log(`[Slider Input] Bust Size Slider: ${sliderValue}, Updated userScale: ${this.userScale}`);
+                    this.updateBustoSize(); // Update scale considering user input
+                } catch (error) {
+                    console.error('[Slider Input Error] Error in bustSizeSlider listener:', error);
+                }
             });
         }
 
