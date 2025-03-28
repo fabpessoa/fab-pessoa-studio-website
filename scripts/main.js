@@ -463,7 +463,21 @@ class Scene {
             
             // Load user scale preference first
             if (settings.bustSize) {
-                this.userScale = parseFloat(settings.bustSize);
+                const bustSizeSlider = document.getElementById('bustSize');
+                if (bustSizeSlider) {
+                    bustSizeSlider.value = settings.bustSize;
+                    this.userScale = parseFloat(settings.bustSize); // Make sure userScale is updated
+                    console.log(`[LoadSettings] Loaded bustSize: ${settings.bustSize}`); // ADDED LOG
+                    // Manually update the associated span
+                    const valueSpan = bustSizeSlider.nextElementSibling; 
+                    if (valueSpan && valueSpan.classList.contains('value')) {
+                        valueSpan.textContent = parseFloat(settings.bustSize).toFixed(1);
+                    }
+                    // Trigger size update after loading
+                    if (this.bustoLoaded) { 
+                       this.updateBustoSize();
+                    }
+                }
             }
             
             Object.entries(settings).forEach(([key, value]) => {
@@ -553,7 +567,7 @@ class Scene {
         
         const loader = new GLTFLoader();
         loader.load(
-            'assets/models/busto.glb',
+            'assets/models/busto2.glb',
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
                 const model = gltf.scene; // The raw loaded model scene
