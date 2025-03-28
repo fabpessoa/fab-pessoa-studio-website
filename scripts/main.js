@@ -582,8 +582,8 @@ class Scene {
                 this.bustoGroup = new THREE.Group();
 
                 // Estimate center offset (adjust this value based on the model)
-                const offsetY = -6; 
-                model.position.y = offsetY; // Position model *down* inside group
+                // const offsetY = -6; // TEMPORARILY REMOVED OFFSET
+                model.position.y = 0; // Position model at group origin
                 // Center horizontally and depth-wise within the group
                 model.position.x = 0; 
                 model.position.z = 0;
@@ -609,18 +609,22 @@ class Scene {
                 // Add the GROUP to the scene
                 this.scene.add(this.bustoGroup);
                 // --------------------------
-                
+                console.log('Group added to scene');
+                console.log('Group initial position (before updates):', this.bustoGroup.position.clone());
+                console.log('Group initial scale (before updates):', this.bustoGroup.scale.clone());
+                console.log('Model position inside group:', model.position.clone());
+                console.log('Camera position:', this.camera.position.clone());
+
                 // Initial setup: Apply transforms TO THE GROUP
-                this.updateBustTransform(); 
-                this.updateBustoSize(); 
-                
+                this.updateBustTransform(); // Apply slider positions
+                // this.updateBustoSize(); // TEMPORARILY REMOVED initial size update
+
                 this.bustoLoaded = true;
                 if (loadingElement) loadingElement.style.display = 'none';
                 
-                console.log('Bust Group added to scene');
-                console.log('Group position:', this.bustoGroup.position);
-                console.log('Group scale:', this.bustoGroup.scale);
-                console.log('Model position inside group:', model.position);
+                console.log('Bust Group initialized');
+                console.log('Group position (after transform update):', this.bustoGroup.position.clone());
+                console.log('Group scale (should be 1,1,1 initially):', this.bustoGroup.scale.clone());
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
