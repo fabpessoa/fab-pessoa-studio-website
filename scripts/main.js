@@ -440,6 +440,7 @@ class Scene {
         // Specific listener for bust size
         if (bustSizeSlider) {
             bustSizeSlider.addEventListener('input', (e) => {
+                console.log("[Debug] Bust Size Listener Entered"); // Simple entry log
                 updateValue(e.target);
                 const sliderValue = parseFloat(e.target.value);
                 this.userScale = sliderValue;
@@ -508,6 +509,7 @@ class Scene {
     }
 
     updateBustoSize() {
+        console.log("[Debug] updateBustoSize Function Entered"); // Simple entry log
         // Adjust bust size based on viewport orientation
         if (!this.bustoModel) {
             // console.log('Cannot update bust: model not found'); // Reduced noise
