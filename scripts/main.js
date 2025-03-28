@@ -356,16 +356,25 @@ class Scene {
     setupLightControls() {
         console.log('Setting up light controls...');
         
-        // Get all slider elements
+        // Get all slider elements & VERIFY
         const mainLightSlider = document.getElementById('mainLight');
+        console.log('mainLightSlider:', mainLightSlider ? 'Found' : 'NOT FOUND');
         const fillLightSlider = document.getElementById('fillLight');
+        console.log('fillLightSlider:', fillLightSlider ? 'Found' : 'NOT FOUND');
         const ambientLightSlider = document.getElementById('ambientLight');
+        console.log('ambientLightSlider:', ambientLightSlider ? 'Found' : 'NOT FOUND');
         const rimLightSlider = document.getElementById('rimLight');
+        console.log('rimLightSlider:', rimLightSlider ? 'Found' : 'NOT FOUND');
         const bustSizeSlider = document.getElementById('bustSize');
+        console.log('bustSizeSlider:', bustSizeSlider ? 'Found' : 'NOT FOUND');
         const bustVerticalSlider = document.getElementById('bustVertical');
+        console.log('bustVerticalSlider:', bustVerticalSlider ? 'Found' : 'NOT FOUND');
         const bustHorizontalSlider = document.getElementById('bustHorizontal');
+        console.log('bustHorizontalSlider:', bustHorizontalSlider ? 'Found' : 'NOT FOUND');
         const colorSaturationSlider = document.getElementById('colorSaturation');
+        console.log('colorSaturationSlider:', colorSaturationSlider ? 'Found' : 'NOT FOUND');
         const materialRoughnessSlider = document.getElementById('materialRoughness');
+        console.log('materialRoughnessSlider:', materialRoughnessSlider ? 'Found' : 'NOT FOUND');
 
         // Helper function to update value display
         const updateValue = (slider) => {
