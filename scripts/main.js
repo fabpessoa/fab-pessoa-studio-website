@@ -21,6 +21,8 @@ class Scene {
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Store state of each sphere
         this.userScale = 1.0; // Add user scale preference
+        this.bustoGroup = null; // Group to hold the bust for centering
+        this.bustoModel = null; // Reference to the actual loaded model
         
         // Variables for head animation
         this.headAnimation = {
@@ -385,32 +387,6 @@ class Scene {
             }
         };
 
-        // Helper function to update material properties
-        const updateMaterialProperties = () => {
-            if (!this.bustoModel) return;
-            
-            const saturation = parseFloat(colorSaturationSlider.value);
-            const roughness = parseFloat(materialRoughnessSlider.value);
-            
-            this.bustoModel.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    // Update material properties
-                    child.material.roughness = roughness;
-                    
-                    // Update color saturation using HSL
-                    const color = new THREE.Color();
-                    color.copy(child.material.color);
-                    const hsl = {};
-                    color.getHSL(hsl);
-                    color.setHSL(hsl.h, hsl.s * saturation, hsl.l);
-                    child.material.color = color;
-                    
-                    // Ensure material updates
-                    child.material.needsUpdate = true;
-                }
-            });
-        };
-
         // Set up event listeners for all sliders
         [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider].forEach(slider => {
             if (!slider) return;
@@ -450,7 +426,7 @@ class Scene {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
                 updateValue(e.target);
-                updateMaterialProperties();
+                this.updateMaterialProperties(); // Call as class method
             });
         });
 
@@ -463,6 +439,7 @@ class Scene {
         const saveButton = document.getElementById('saveLightSettings');
         if (saveButton) {
             saveButton.addEventListener('click', () => {
+                console.log('[Save Button] Clicked!'); // Add log
                 const settings = {
                     mainLight: mainLightSlider.value,
                     fillLight: fillLightSlider.value,
@@ -500,13 +477,14 @@ class Scene {
             // Apply loaded settings
             this.updateLights();
             this.updateBustTransform(); // Call as class method
-            updateMaterialProperties();
+            this.updateMaterialProperties(); // Call as class method
             this.updateBustoSize(); // Apply combined scale last
         }
     }
 
     updateBustTransform() {
-        if (!this.bustoModel) return;
+        // Target the GROUP
+        if (!this.bustoGroup) return;
         
         // Need to get sliders again OR pass them in OR store them on 'this'
         // Let's re-get them for simplicity here, though storing might be better
@@ -518,17 +496,15 @@ class Scene {
         const vertical = parseFloat(bustVerticalSlider.value);
         const horizontal = parseFloat(bustHorizontalSlider.value);
         
-        // Update position ONLY
-        this.bustoModel.position.y = vertical;
-        this.bustoModel.position.x = horizontal;
+        // Update GROUP position ONLY
+        this.bustoGroup.position.y = vertical;
+        this.bustoGroup.position.x = horizontal;
+        this.bustoGroup.position.z = 0; 
     }
 
     updateBustoSize() {
-        // Adjust bust size based on viewport orientation
-        if (!this.bustoModel) {
-            // console.log('Cannot update bust: model not found'); // Reduced noise
-            return;
-        }
+        // Target the GROUP
+        if (!this.bustoGroup) return;
         
         const isLandscape = window.innerWidth > window.innerHeight;
         const viewportWidth = window.innerWidth;
@@ -551,14 +527,15 @@ class Scene {
         // Combine responsive scale with user preference
         const finalScale = responsiveScale * this.userScale; 
         
-        // Apply scale with smoothing
-        const currentScale = this.bustoModel.scale.x;
+        // Apply scale to the GROUP
+        const currentScale = this.bustoGroup.scale.x;
         const smoothedScale = currentScale + (finalScale - currentScale) * 0.1;
-        this.bustoModel.scale.set(smoothedScale, smoothedScale, smoothedScale);
+        this.bustoGroup.scale.set(smoothedScale, smoothedScale, smoothedScale);
         
-        console.log(`[UpdateBustoSize] Responsive: ${responsiveScale.toFixed(3)}, User: ${this.userScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}, Smoothed: ${smoothedScale.toFixed(3)}, Applied Scale: ${this.bustoModel.scale.x.toFixed(3)}`);
+        // Update the log to show group scale
+        console.log(`[UpdateBustoSize] Responsive: ${responsiveScale.toFixed(3)}, User: ${this.userScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}, Smoothed: ${smoothedScale.toFixed(3)}, Applied Scale: ${this.bustoGroup.scale.x.toFixed(3)}`);
 
-        // Calculate vertical position with smooth transition
+        // This position calculation is responsive, keep it for the group
         let verticalOffset;
         if (isLandscape) {
             // Desktop position
@@ -571,19 +548,14 @@ class Scene {
             verticalOffset = baseOffset * heightRatio * (1 + transitionFactor);
         }
         
-        // Apply position with smoothing (Position is handled by updateBustTransform now)
-        // const currentY = this.bustoModel.position.y;
-        // const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
-        // this.bustoModel.position.set(1, smoothedY, 0);
-        
-        // Reset rotation
-        this.bustoModel.rotation.x = 0;
-        this.bustoModel.rotation.y = 0;
-        this.bustoModel.rotation.z = 0;
-        
-        // console.log('Bust size updated:'); // Reduced noise
-        // console.log('- Final Scale:', finalScale);
-        // console.log('- Smoothed Scale:', this.bustoModel.scale);
+        // Apply responsive vertical offset smoothly TO THE GROUP
+        const currentY = this.bustoGroup.position.y;
+        const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
+        // Only set Y, X is handled by updateBustTransform (manual slider)
+        this.bustoGroup.position.y = smoothedY; 
+
+        // Reset GROUP rotation (if needed, maybe not?)
+        // this.bustoGroup.rotation.set(0, 0, 0);
     }
 
     loadModels() {
@@ -598,47 +570,57 @@ class Scene {
         const loadingElement = document.getElementById('loading');
         if (loadingElement) loadingElement.style.display = 'block';
         
-        console.log('Trying to load bust from: /assets/models/busto.glb');
-        
         const loader = new GLTFLoader();
         loader.load(
-            'assets/models/busto.glb', // Fixed path without leading slash
+            'assets/models/busto.glb', 
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
-                this.bustoModel = gltf.scene;
-                
-                // Configure materials
-                this.bustoModel.traverse((child) => {
+                const model = gltf.scene; // The raw loaded model scene
+                this.bustoModel = model; // Keep reference if needed elsewhere
+
+                // --- Parent Group Setup ---
+                this.bustoGroup = new THREE.Group();
+
+                // Estimate center offset (adjust this value based on the model)
+                const offsetY = -6; 
+                model.position.y = offsetY; // Position model *down* inside group
+                // Center horizontally and depth-wise within the group
+                model.position.x = 0; 
+                model.position.z = 0;
+
+                // Configure materials (on the actual model)
+                model.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
-                        child.renderOrder = 2; // Ensure bust renders on top of the title
+                        child.renderOrder = 2; 
                         if (child.material) {
                             child.material.metalness = 0.3;
                             child.material.roughness = 0.7;
+                            // Initialize userData for material manipulation
+                            child.material.userData = {}; 
                         }
-                        console.log('Mesh found in bust:', child.name);
                     }
                 });
                 
-                // Add to scene
-                this.scene.add(this.bustoModel);
+                // Add model to the group
+                this.bustoGroup.add(model);
+
+                // Add the GROUP to the scene
+                this.scene.add(this.bustoGroup);
+                // --------------------------
                 
-                // Initial setup: Apply loaded positions first, then scale
-                this.updateBustTransform(); // Call as class method
-                this.updateBustoSize(); // Then apply combined scale
+                // Initial setup: Apply transforms TO THE GROUP
+                this.updateBustTransform(); 
+                this.updateBustoSize(); 
                 
-                // Mark as loaded
                 this.bustoLoaded = true;
-                
-                // Hide loader
                 if (loadingElement) loadingElement.style.display = 'none';
                 
-                // Log the position and scale for debugging
-                console.log('Bust successfully added to scene');
-                console.log('Bust position:', this.bustoModel.position);
-                console.log('Bust scale:', this.bustoModel.scale);
-                console.log('Camera position:', this.camera.position);
+                console.log('Bust Group added to scene');
+                console.log('Group position:', this.bustoGroup.position);
+                console.log('Group scale:', this.bustoGroup.scale);
+                console.log('Model position inside group:', model.position);
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
@@ -713,15 +695,15 @@ class Scene {
     }
 
     updateHeadAnimation(deltaTime) {
-        // Check if bust has active animation
-        if (!this.headAnimation || !this.headAnimation.active) return;
+        // Target the GROUP for rotation
+        if (!this.bustoGroup || !this.headAnimation || !this.headAnimation.active) return;
         
         // Calculate rotation using sine for smooth and continuous movement
         const time = this.headAnimation.time + deltaTime * this.headAnimation.speed;
         const rotation = Math.sin(time) * this.headAnimation.amplitude;
         
-        // Apply rotation
-        this.bustoModel.rotation.y = rotation;
+        // Apply rotation to the GROUP
+        this.bustoGroup.rotation.y = rotation;
         
         // Update animation time
         this.headAnimation.time = time;
@@ -737,8 +719,10 @@ class Scene {
         // Update renderer size
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         
-        // Update bust size and position on resize
-        this.updateBustoSize();
+        // Update GROUP size and position on resize
+        if (this.bustoLoaded) { // Check if bustoGroup is ready
+             this.updateBustoSize();
+        }
     }
 
     loadLightSettings() {
@@ -772,6 +756,57 @@ class Scene {
         if (this.lights.rim && rimLightSlider) {
             this.lights.rim.intensity = parseFloat(rimLightSlider.value);
         }
+    }
+
+    updateMaterialProperties() {
+        // Check the GROUP now
+        if (!this.bustoGroup || !this.bustoGroup.children.length > 0) return; 
+
+        // Need to get sliders again OR pass them in OR store them on 'this'
+        const colorSaturationSlider = document.getElementById('colorSaturation');
+        const materialRoughnessSlider = document.getElementById('materialRoughness');
+
+        if (!colorSaturationSlider || !materialRoughnessSlider) return; // Guard clause
+        
+        const saturation = parseFloat(colorSaturationSlider.value);
+        const roughness = parseFloat(materialRoughnessSlider.value);
+        
+        // Target the actual model INSIDE the group
+        const actualBustModel = this.bustoGroup.children[0]; 
+        actualBustModel.traverse((child) => { 
+            if (child.isMesh && child.material) {
+                // If userData doesn't exist, initialize it
+                if (!child.material.userData) {
+                    child.material.userData = {};
+                }
+
+                // Store original color on first pass if not already stored
+                if (!child.material.userData.originalColor) {
+                    // Clone the initial color before any modifications
+                    child.material.userData.originalColor = child.material.color.clone();
+                }
+
+                // Update material properties
+                child.material.roughness = roughness;
+                
+                // Update color saturation using HSL, starting from original color
+                const color = new THREE.Color();
+                const baseColor = child.material.userData.originalColor; // Use stored original
+                color.copy(baseColor);
+                const hsl = {};
+                color.getHSL(hsl);
+                
+                // Clamp saturation to avoid inversion if base saturation is 0 or negative
+                // Apply saturation factor to the original saturation
+                const newSaturation = Math.max(0, hsl.s * saturation);
+                
+                color.setHSL(hsl.h, newSaturation, hsl.l); 
+                child.material.color = color;
+                
+                // Ensure material updates
+                child.material.needsUpdate = true;
+            }
+        });
     }
 }
 
