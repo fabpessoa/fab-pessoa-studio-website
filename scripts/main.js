@@ -615,6 +615,8 @@ class Scene {
                 this.updateBustoSize(); // RESTORED: Apply initial size update
 
                 this.bustoLoaded = true;
+                this.updateBustoSize(); // ADDED: Ensure size updates AFTER bustLoaded and potential loadSettings
+
                 if (loadingElement) loadingElement.style.display = 'none';
                 
                 console.log('Bust Group initialized');
