@@ -535,25 +535,6 @@ class Scene {
         // Update the log to show group scale
         console.log(`[UpdateBustoSize] Responsive: ${responsiveScale.toFixed(3)}, User: ${this.userScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}, Smoothed: ${smoothedScale.toFixed(3)}, Applied Scale: ${this.bustoGroup.scale.x.toFixed(3)}`);
 
-        // This position calculation is responsive, keep it for the group
-        let verticalOffset;
-        if (isLandscape) {
-            // Desktop position
-            verticalOffset = -6;
-        } else {
-            // Mobile position with smooth transition
-            const baseOffset = -2;
-            const heightRatio = viewportHeight / 1080;
-            const transitionFactor = Math.min(viewportWidth / mobileBreakpoint, 1);
-            verticalOffset = baseOffset * heightRatio * (1 + transitionFactor);
-        }
-        
-        // Apply responsive vertical offset smoothly TO THE GROUP
-        const currentY = this.bustoGroup.position.y;
-        const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
-        // Only set Y, X is handled by updateBustTransform (manual slider)
-        this.bustoGroup.position.y = smoothedY; 
-
         // Reset GROUP rotation (if needed, maybe not?)
         // this.bustoGroup.rotation.set(0, 0, 0);
     }
@@ -617,7 +598,7 @@ class Scene {
 
                 // Initial setup: Apply transforms TO THE GROUP
                 this.updateBustTransform(); // Apply slider positions
-                // this.updateBustoSize(); // TEMPORARILY REMOVED initial size update
+                this.updateBustoSize(); // RESTORED: Apply initial size update
 
                 this.bustoLoaded = true;
                 if (loadingElement) loadingElement.style.display = 'none';
