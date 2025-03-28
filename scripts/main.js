@@ -441,7 +441,9 @@ class Scene {
         if (bustSizeSlider) {
             bustSizeSlider.addEventListener('input', (e) => {
                 updateValue(e.target);
-                this.userScale = parseFloat(e.target.value);
+                const sliderValue = parseFloat(e.target.value);
+                this.userScale = sliderValue;
+                console.log(`[Slider Input] Bust Size Slider: ${sliderValue}, Updated userScale: ${this.userScale}`);
                 this.updateBustoSize(); // Update scale considering user input
             });
         }
@@ -508,7 +510,7 @@ class Scene {
     updateBustoSize() {
         // Adjust bust size based on viewport orientation
         if (!this.bustoModel) {
-            console.log('Cannot update bust: model not found');
+            // console.log('Cannot update bust: model not found'); // Reduced noise
             return;
         }
         
@@ -538,6 +540,8 @@ class Scene {
         const smoothedScale = currentScale + (finalScale - currentScale) * 0.1;
         this.bustoModel.scale.set(smoothedScale, smoothedScale, smoothedScale);
         
+        console.log(`[UpdateBustoSize] Responsive: ${responsiveScale.toFixed(3)}, User: ${this.userScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}, Smoothed: ${smoothedScale.toFixed(3)}, Applied Scale: ${this.bustoModel.scale.x.toFixed(3)}`);
+
         // Calculate vertical position with smooth transition
         let verticalOffset;
         if (isLandscape) {
@@ -561,9 +565,9 @@ class Scene {
         this.bustoModel.rotation.y = 0;
         this.bustoModel.rotation.z = 0;
         
-        console.log('Bust size updated:');
-        console.log('- Final Scale:', finalScale);
-        console.log('- Smoothed Scale:', this.bustoModel.scale);
+        // console.log('Bust size updated:'); // Reduced noise
+        // console.log('- Final Scale:', finalScale);
+        // console.log('- Smoothed Scale:', this.bustoModel.scale);
     }
 
     loadModels() {
