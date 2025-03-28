@@ -20,6 +20,7 @@ class Scene {
         this.lights = {};  // Store light references
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Store state of each sphere
+        this.userScale = 1.0; // Add user scale preference
         
         // Variables for head animation
         this.headAnimation = {
@@ -428,13 +429,22 @@ class Scene {
         });
 
         // Set up event listeners for new controls
-        [bustSizeSlider, bustVerticalSlider, bustHorizontalSlider].forEach(slider => {
+        [bustVerticalSlider, bustHorizontalSlider].forEach(slider => {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
                 updateValue(e.target);
-                updateBustTransform();
+                updateBustTransform(); // Position only
             });
         });
+
+        // Specific listener for bust size
+        if (bustSizeSlider) {
+            bustSizeSlider.addEventListener('input', (e) => {
+                updateValue(e.target);
+                this.userScale = parseFloat(e.target.value);
+                this.updateBustoSize(); // Update scale considering user input
+            });
+        }
 
         [colorSaturationSlider, materialRoughnessSlider].forEach(slider => {
             if (!slider) return;
@@ -473,6 +483,12 @@ class Scene {
         const savedSettings = localStorage.getItem('sceneSettings');
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
+            
+            // Load user scale preference first
+            if (settings.bustSize) {
+                this.userScale = parseFloat(settings.bustSize);
+            }
+            
             Object.entries(settings).forEach(([key, value]) => {
                 const slider = document.getElementById(key);
                 if (slider) {
@@ -480,9 +496,12 @@ class Scene {
                     updateValue(slider);
                 }
             });
+            
+            // Apply loaded settings
             this.updateLights();
-            updateBustTransform();
+            updateBustTransform(); // Apply loaded positions
             updateMaterialProperties();
+            this.updateBustoSize(); // Apply combined scale last
         }
     }
 
@@ -496,24 +515,27 @@ class Scene {
         const isLandscape = window.innerWidth > window.innerHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        let scale;
+        let responsiveScale;
         
         // Breakpoint for transition (adjust based on your needs)
         const mobileBreakpoint = 768;
         
-        // Calculate scale with a smooth transition between mobile and desktop
+        // Calculate responsive base scale
         if (isLandscape) {
             // Desktop/landscape mode
-            scale = Math.min(viewportHeight * 0.56 / 30, viewportWidth * 0.4 / 30);
+            responsiveScale = Math.min(viewportHeight * 0.56 / 30, viewportWidth * 0.4 / 30);
         } else {
             // Mobile/portrait mode - smoother transition
             const transitionProgress = Math.min(viewportWidth / mobileBreakpoint, 1);
-            scale = (viewportWidth * 0.56 / 30) * transitionProgress;
+            responsiveScale = (viewportWidth * 0.56 / 30) * transitionProgress;
         }
+
+        // Combine responsive scale with user preference
+        const finalScale = responsiveScale * this.userScale; 
         
         // Apply scale with smoothing
         const currentScale = this.bustoModel.scale.x;
-        const smoothedScale = currentScale + (scale - currentScale) * 0.1;
+        const smoothedScale = currentScale + (finalScale - currentScale) * 0.1;
         this.bustoModel.scale.set(smoothedScale, smoothedScale, smoothedScale);
         
         // Calculate vertical position with smooth transition
@@ -529,19 +551,19 @@ class Scene {
             verticalOffset = baseOffset * heightRatio * (1 + transitionFactor);
         }
         
-        // Apply position with smoothing
-        const currentY = this.bustoModel.position.y;
-        const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
-        this.bustoModel.position.set(1, smoothedY, 0);
+        // Apply position with smoothing (Position is handled by updateBustTransform now)
+        // const currentY = this.bustoModel.position.y;
+        // const smoothedY = currentY + (verticalOffset - currentY) * 0.1;
+        // this.bustoModel.position.set(1, smoothedY, 0);
         
         // Reset rotation
         this.bustoModel.rotation.x = 0;
         this.bustoModel.rotation.y = 0;
         this.bustoModel.rotation.z = 0;
         
-        console.log('Bust size and position updated:');
-        console.log('- Scale:', this.bustoModel.scale);
-        console.log('- Position:', this.bustoModel.position);
+        console.log('Bust size updated:');
+        console.log('- Final Scale:', finalScale);
+        console.log('- Smoothed Scale:', this.bustoModel.scale);
     }
 
     loadModels() {
@@ -582,8 +604,9 @@ class Scene {
                 // Add to scene
                 this.scene.add(this.bustoModel);
                 
-                // Configure scale and position using responsive sizing
-                this.updateBustoSize();
+                // Initial setup: Apply loaded positions first, then scale
+                updateBustTransform(); // Use updateBustTransform to apply saved/default position
+                this.updateBustoSize(); // Then apply combined scale
                 
                 // Mark as loaded
                 this.bustoLoaded = true;
@@ -599,74 +622,13 @@ class Scene {
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
-                if (loadingElement) loadingElement.textContent = `Loading... ${percent}%`;
-                console.log(`Progress: ${percent}%`);
+                console.log(`Loading model: ${percent}%`);
             },
             (error) => {
-                console.error('Error loading model:', error);
-                if (loadingElement) loadingElement.textContent = 'Error loading model';
-                
-                console.log('------------------------------');
-                console.log('DEBUG: LOADING FAILURE');
-                console.log('Possible causes:');
-                console.log('1. CORS preventing file access');
-                console.log('2. Server configuration issue');
-                console.log('3. File is corrupted');
-                console.log('4. Path is incorrect, trying relative path');
-                console.log('------------------------------');
-                
-                // Try alternate path as fallback
-                this.tryAlternateLoadPath();
-            }
-        );
-    }
-    
-    tryAlternateLoadPath() {
-        console.log('Trying alternate path for bust model...');
-        
-        const loadingElement = document.getElementById('loading');
-        
-        const loader = new GLTFLoader();
-        loader.load(
-            'assets/models/busto.glb', // Try relative path without leading slash
-            (gltf) => {
-                console.log('SUCCESS with alternate path! Bust loaded successfully');
-                this.bustoModel = gltf.scene;
-                
-                // Configure materials
-                this.bustoModel.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.renderOrder = 2;
-                        if (child.material) {
-                            child.material.metalness = 0.3;
-                            child.material.roughness = 0.7;
-                        }
-                    }
-                });
-                
-                // Add to scene
-                this.scene.add(this.bustoModel);
-                
-                // Configure scale and position
-                this.updateBustoSize();
-                
-                // Mark as loaded
-                this.bustoLoaded = true;
-                
-                // Hide loader
-                if (loadingElement) loadingElement.style.display = 'none';
-                
-                console.log('Bust successfully added to scene with alternate path');
-            },
-            (xhr) => {
-                const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
-                if (loadingElement) loadingElement.textContent = `Loading again... ${percent}%`;
-            },
-            (error) => {
-                console.error('Error loading model with alternate path:', error);
-                if (loadingElement) loadingElement.textContent = 'Failed to load model';
+                console.error('Error loading bust:', error);
+                if (loadingElement) {
+                    loadingElement.textContent = 'Error loading model';
+                }
             }
         );
     }
@@ -707,57 +669,30 @@ class Scene {
     }
 
     animate() {
-        requestAnimationFrame(this.animate.bind(this));
-        
-        const currentTime = performance.now();
-        const deltaTime = (currentTime - this.lastTime) / 1000;
-        this.lastTime = currentTime;
-        
-        // Debug once at the beginning
-        if (!this.debugRan) {
-            console.log('DEBUG: Renderer settings', {
-                alpha: this.renderer.alpha,
-                clearColor: this.renderer && typeof this.renderer.getClearColor === 'function' 
-                    ? this.renderer.getClearColor(new THREE.Color()) : 'Not available',
-                clearAlpha: this.renderer && typeof this.renderer.getClearAlpha === 'function'
-                    ? this.renderer.getClearAlpha() : 'Not available',
-                sceneBackground: this.scene.background,
-                domElementStyle: {
-                    backgroundColor: this.renderer && this.renderer.domElement 
-                        ? this.renderer.domElement.style.backgroundColor : 'Not available'
-                }
-            });
-            
-            // Add a position debug message
-            console.log('DEBUG: Scene positions', {
-                camera: this.camera ? this.camera.position.toArray() : 'Not available',
-                cameraTarget: this.controls ? this.controls.target.toArray() : 'Not available',
-                bust: this.bustoModel ? this.bustoModel.position.toArray() : 'Not available',
-                spheres: this.orbitalObjects && this.orbitalObjects.length > 0 
-                    ? this.orbitalObjects[0].position.toArray() : 'Not available'
-            });
-            this.debugRan = true;
-        }
-        
-        // Only update orbital objects if they exist
-        if (this.orbitalObjects && this.orbitalObjects.length > 0) {
+        requestAnimationFrame(() => this.animate());
+
+        const now = performance.now();
+        const deltaTime = (now - this.lastTime) / 1000; // Convert ms to seconds
+        this.lastTime = now;
+
+        // Update OrbitControls
+        this.controls.update();
+
+        // Update orbital spheres
+        if (this.orbitalObjects.length > 0) {
             this.updateOrbitalObjects();
         }
         
-        // Update bust rotation if needed
-        if (this.bustoLoaded && this.bustoModel) {
-            this.updateBustoRotation(deltaTime);
+        // Update head animation
+        if (this.bustoLoaded && this.headAnimation.active) {
+            this.updateHeadAnimation(deltaTime);
         }
-        
-        // Update controls if they exist
-        if (this.controls) {
-            this.controls.update();
-        }
-        
+
+        // Render scene
         this.renderer.render(this.scene, this.camera);
     }
 
-    updateBustoRotation(deltaTime) {
+    updateHeadAnimation(deltaTime) {
         // Check if bust has active animation
         if (!this.headAnimation || !this.headAnimation.active) return;
         
@@ -771,15 +706,19 @@ class Scene {
         // Update animation time
         this.headAnimation.time = time;
     }
-    
+
     resize() {
+        console.log('Resizing scene...');
+        
+        // Update camera aspect ratio
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
+        
+        // Update renderer size
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         
-        if (this.bustoLoaded && this.bustoModel) {
-            this.updateBustoSize();
-        }
+        // Update bust size and position on resize
+        this.updateBustoSize();
     }
 
     loadLightSettings() {
