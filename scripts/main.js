@@ -687,7 +687,7 @@ class Scene {
         );
     }
 
-    updateOrbitalObjects() {
+    updateOrbitalObjects(deltaTime) {
         if (!this.orbitalObjects || this.orbitalObjects.length === 0) return;
         
         const time = performance.now() * 0.001; // Time in seconds
@@ -736,7 +736,9 @@ class Scene {
         this.updateHeadAnimation(deltaTime);
         
         // Update orbital spheres animation
-        this.updateOrbitalSpheres(deltaTime);
+        if (this.orbitalObjects.length > 0) {
+             this.updateOrbitalObjects(deltaTime);
+        }
 
         // Use composer to render instead of renderer directly
         /* Temporarily comment out composer render
