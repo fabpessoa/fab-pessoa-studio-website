@@ -796,27 +796,26 @@ class Scene {
                 // --- Saturation Calculation Debug ---
                 console.log(`[Saturation Debug] Input saturation value: ${saturation}`); // LOG Input
 
-                // Update color saturation using HSL, starting from original color
-                const color = new THREE.Color();
-                const baseColor = child.material.userData.originalColor; // Use stored original
-                console.log(`[Saturation Debug] Using baseColor: #${baseColor.getHexString()}`); // LOG Base Color
+                // --- Revised Saturation Logic ---
+                const baseGray = new THREE.Color(0x808080); // Define a mid-gray base
+                const finalColor = new THREE.Color();
+                const baseHsl = {};
+                baseGray.getHSL(baseHsl);
+
+                console.log(`[Saturation Debug] Using baseGray HSL: h=${baseHsl.h.toFixed(3)}, s=${baseHsl.s.toFixed(3)}, l=${baseHsl.l.toFixed(3)}`);
+
+                // Directly use the slider value as the target saturation
+                // Clamp between 0 and 1 as HSL saturation expects that range
+                const targetSaturation = Math.max(0, Math.min(1, saturation)); 
+                console.log(`[Saturation Debug] Target Saturation (clamped 0-1): ${targetSaturation.toFixed(3)}`);
+
+                // Set the final color using the base hue/lightness and the target saturation
+                finalColor.setHSL(baseHsl.h, targetSaturation, baseHsl.l);
+                console.log(`[Saturation Debug] Final Color Applied: #${finalColor.getHexString()}`);
+                // --- End Revised Logic ---
                 
-                color.copy(baseColor);
-                const hsl = {};
-                color.getHSL(hsl);
-                console.log(`[Saturation Debug] Original HSL: h=${hsl.h.toFixed(3)}, s=${hsl.s.toFixed(3)}, l=${hsl.l.toFixed(3)}`); // LOG Original HSL
-                
-                // Clamp saturation to avoid inversion if base saturation is 0 or negative
-                // Apply saturation factor to the original saturation
-                const newSaturation = Math.max(0, hsl.s * saturation); 
-                console.log(`[Saturation Debug] Calculated newSaturation: ${newSaturation.toFixed(3)} (base sat ${hsl.s.toFixed(3)} * input ${saturation.toFixed(3)})`); // LOG New Saturation
-                
-                color.setHSL(hsl.h, newSaturation, hsl.l); 
-                console.log(`[Saturation Debug] Final HSL: h=${hsl.h.toFixed(3)}, s=${newSaturation.toFixed(3)}, l=${hsl.l.toFixed(3)}`); // LOG Final HSL
-                console.log(`[Saturation Debug] Final Color Applied: #${color.getHexString()}`); // LOG Final Color
-                // --- End Debug ---
-                
-                child.material.color = color;
+                // child.material.color = color; // OLD LOGIC
+                child.material.color = finalColor; // Apply the newly calculated color
                 
                 // Ensure material updates
                 child.material.needsUpdate = true;
