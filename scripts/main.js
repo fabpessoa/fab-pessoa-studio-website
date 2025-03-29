@@ -622,40 +622,45 @@ class Scene {
     }
 
     updateBustoSize() {
-        // Target the GROUP
-        if (!this.bustoGroup) return;
+        if (!this.bustoGroup) return; // Check if the group exists
+
+        const width = window.innerWidth;
         
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        let responsiveScale;
-        
-        // Breakpoint for transition (adjust based on your needs)
-        const mobileBreakpoint = 768;
-        
-        // Calculate responsive base scale
-        if (isLandscape) {
-            // Desktop/landscape mode
-            responsiveScale = Math.min(viewportHeight * 0.56 / 30, viewportWidth * 0.4 / 30);
-        } else {
-            // Mobile/portrait mode - smoother transition
-            const transitionProgress = Math.min(viewportWidth / mobileBreakpoint, 1);
-            responsiveScale = (viewportWidth * 0.56 / 30) * transitionProgress;
+        // Determine target scale based on viewport width
+        let targetScale;
+        if (width < 768) { // Mobile
+            targetScale = 0.8;
+        } else { // Desktop
+            targetScale = 1.0;
         }
 
-        // Combine responsive scale with user preference
-        const finalScale = responsiveScale * this.userScale; 
+        // Smoothly transition the responsive scale
+        this.responsiveScale += (targetScale - this.responsiveScale) * 0.1;
+
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log(`[Size Calc] Before finalScale: initial=${this.initialScale.toFixed(3)}, responsive=${this.responsiveScale.toFixed(3)}, user=${this.userScale.toFixed(3)}`);
+        // --- END ADDED DEBUG LOG ---
+
+        // Calculate the final scale combining responsive, initial, and user adjustments
+        const finalScale = this.initialScale * this.responsiveScale * this.userScale;
+
+        // Check for NaN or invalid scale values
+        if (isNaN(finalScale) || finalScale <= 0) {
+            console.warn('Invalid scale calculated:', finalScale);
+            return;
+        }
         
         // Apply scale to the GROUP
-        const currentScale = this.bustoGroup.scale.x;
-        const smoothedScale = currentScale + (finalScale - currentScale) * 0.1;
-        this.bustoGroup.scale.set(smoothedScale, smoothedScale, smoothedScale);
+        this.bustoGroup.scale.set(finalScale, finalScale, finalScale);
+        console.log(`[Size Set] Applied scale to group: ${finalScale.toFixed(3)}`);
         
-        // Update the log to show group scale
-        console.log(`[UpdateBustoSize] Responsive: ${responsiveScale.toFixed(3)}, User: ${this.userScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}, Smoothed: ${smoothedScale.toFixed(3)}, Applied Scale: ${this.bustoGroup.scale.x.toFixed(3)}`);
-
-        // Reset GROUP rotation (if needed, maybe not?)
-        // this.bustoGroup.rotation.set(0, 0, 0);
+        // Optionally, update position based on new scale if needed
+        // Example: keep bottom fixed (might need adjustment based on model origin)
+        // if (this.bustoModel) {
+        //     const boundingBox = new THREE.Box3().setFromObject(this.bustoModel);
+        //     const height = boundingBox.max.y - boundingBox.min.y;
+        //     this.bustoGroup.position.y = this.basePositionY + (height * finalScale) / 2; 
+        // }
     }
 
     loadModels() {
