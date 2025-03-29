@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { HueSaturationShader } from 'three/addons/shaders/HueSaturationShader.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 class Scene {
     constructor() {
@@ -383,7 +384,11 @@ class Scene {
         this.hueSaturationPass.uniforms['saturation'].value = 0.0;
         this.composer.addPass(this.hueSaturationPass);
 
-        console.log('Post-processing composer set up.');
+        // 3. Add OutputPass for correct tone mapping and color space
+        const outputPass = new OutputPass();
+        this.composer.addPass(outputPass);
+
+        console.log('Post-processing composer set up with OutputPass.');
     }
 
     setupLightControls() {
