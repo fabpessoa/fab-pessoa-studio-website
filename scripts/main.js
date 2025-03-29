@@ -27,11 +27,15 @@ class Scene {
         this.lights = {};  // Store light references
         this.hoveredSphere = null;
         this.sphereStates = new Map(); // Store state of each sphere
-        this.userScale = 1.0; // Add user scale preference
+        this.userScale = 1.3; // Initialize userScale (matches default slider)
         this.bustoGroup = null; // Group to hold the bust for centering
         this.bustoModel = null; // Reference to the actual loaded model
         this.composer = null; // Re-enable
         this.hueSaturationPass = null; // Re-enable
+        this.orbitControls = null;
+        this.mixer = null; // Animation mixer for bust
+        this.initialScale = 1.0; // Initialize initialScale
+        this.responsiveScale = 1.0; // Initialize responsiveScale
         
         // Variables for head animation
         this.headAnimation = {
@@ -636,6 +640,17 @@ class Scene {
 
         // Smoothly transition the responsive scale
         this.responsiveScale += (targetScale - this.responsiveScale) * 0.1;
+
+        // --- BEGIN ADDED CHECK --- 
+        if (typeof this.initialScale !== 'number' || typeof this.responsiveScale !== 'number' || typeof this.userScale !== 'number') {
+            console.error('[Size Calc Error] One or more scale factors are not numbers:', 
+                `initial=${this.initialScale}`, 
+                `responsive=${this.responsiveScale}`, 
+                `user=${this.userScale}`
+            );
+            return; // Prevent further calculation if any factor is invalid
+        }
+        // --- END ADDED CHECK --- 
 
         // --- BEGIN ADDED DEBUG LOG ---
         console.log(`[Size Calc] Before finalScale: initial=${this.initialScale.toFixed(3)}, responsive=${this.responsiveScale.toFixed(3)}, user=${this.userScale.toFixed(3)}`);
