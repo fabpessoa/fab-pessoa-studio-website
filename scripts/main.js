@@ -88,13 +88,14 @@ class Scene {
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        // Enable tone mapping
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // Use ACES Filmic
+        this.renderer.toneMappingExposure = 1.0; // Default exposure
         
         // Set clear color with 0 alpha (transparent)
         this.renderer.setClearColor(0x000000, 0);
         console.log('Renderer clear color set to transparent (alpha 0)');
         
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         // Ensure proper sorting for transparency
@@ -384,45 +385,64 @@ class Scene {
     setupLightControls() {
         console.log('Setting up light controls...');
         
-        // Get all slider elements & VERIFY
         const mainLightSlider = document.getElementById('mainLight');
-        console.log('mainLightSlider:', mainLightSlider ? 'Found' : 'NOT FOUND');
         const fillLightSlider = document.getElementById('fillLight');
-        console.log('fillLightSlider:', fillLightSlider ? 'Found' : 'NOT FOUND');
         const ambientLightSlider = document.getElementById('ambientLight');
-        console.log('ambientLightSlider:', ambientLightSlider ? 'Found' : 'NOT FOUND');
         const rimLightSlider = document.getElementById('rimLight');
-        console.log('rimLightSlider:', rimLightSlider ? 'Found' : 'NOT FOUND');
         const bustSizeSlider = document.getElementById('bustSize');
-        console.log('bustSizeSlider:', bustSizeSlider ? 'Found' : 'NOT FOUND');
         const bustVerticalSlider = document.getElementById('bustVertical');
-        console.log('bustVerticalSlider:', bustVerticalSlider ? 'Found' : 'NOT FOUND');
         const bustHorizontalSlider = document.getElementById('bustHorizontal');
-        console.log('bustHorizontalSlider:', bustHorizontalSlider ? 'Found' : 'NOT FOUND');
         const colorSaturationSlider = document.getElementById('colorSaturation');
-        console.log('colorSaturationSlider:', colorSaturationSlider ? 'Found' : 'NOT FOUND');
         const materialRoughnessSlider = document.getElementById('materialRoughness');
-        console.log('materialRoughnessSlider:', materialRoughnessSlider ? 'Found' : 'NOT FOUND');
+        const exposureSlider = document.getElementById('exposure');
+        const saveButton = document.getElementById('saveLightSettings');
 
-        // Helper function to update value display
+        // Check if elements were found
+        if (!mainLightSlider) console.error('Main Light Slider NOT FOUND');
+        if (!fillLightSlider) console.error('Fill Light Slider NOT FOUND');
+        if (!ambientLightSlider) console.error('Ambient Light Slider NOT FOUND');
+        if (!rimLightSlider) console.error('Rim Light Slider NOT FOUND');
+        if (!bustSizeSlider) console.error('Bust Size Slider NOT FOUND');
+        if (!bustVerticalSlider) console.error('Bust Vertical Slider NOT FOUND');
+        if (!bustHorizontalSlider) console.error('Bust Horizontal Slider NOT FOUND');
+        if (!colorSaturationSlider) console.error('Color Saturation Slider NOT FOUND');
+        if (!materialRoughnessSlider) console.error('Material Roughness Slider NOT FOUND');
+        if (!exposureSlider) console.error('Exposure Slider NOT FOUND');
+        if (!saveButton) console.error('Save Button NOT FOUND');
+
+        // Helper function to update the displayed value next to the slider
         const updateValue = (slider) => {
-            if (!slider) return;
-            const valueDisplay = slider.parentElement.querySelector('.value');
-            if (valueDisplay) {
-                valueDisplay.textContent = parseFloat(slider.value).toFixed(1);
+            const valueSpan = slider.nextElementSibling;
+            if (valueSpan && valueSpan.classList.contains('value')) {
+                valueSpan.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
             }
         };
 
-        // Set up event listeners for all sliders
+        // Update initial values on load
+        [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider, bustSizeSlider, bustVerticalSlider, bustHorizontalSlider, colorSaturationSlider, materialRoughnessSlider, exposureSlider].forEach(slider => {
+            if (slider) updateValue(slider);
+        });
+
+        // Generic listener for light intensity sliders
         [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider].forEach(slider => {
             if (!slider) return;
-            slider.addEventListener('input', (e) => {
-                updateValue(e.target);
-                this.updateLights();
+            slider.addEventListener('input', () => {
+                updateValue(slider);
+                this.updateLights(); // Update lights based on sliders
             });
         });
 
-        // Set up event listeners for new controls
+        // Listener for Exposure Slider
+        if (exposureSlider) {
+            exposureSlider.addEventListener('input', () => {
+                updateValue(exposureSlider);
+                const exposureValue = parseFloat(exposureSlider.value);
+                this.renderer.toneMappingExposure = exposureValue;
+                console.log(`[Renderer] Set toneMappingExposure: ${exposureValue}`);
+            });
+        }
+
+        // Listener for bust position/scale sliders
         [bustVerticalSlider, bustHorizontalSlider].forEach(slider => {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
@@ -472,75 +492,103 @@ class Scene {
             });
         });
 
-        // Initialize all value displays
-        [mainLightSlider, fillLightSlider, ambientLightSlider, rimLightSlider,
-         bustSizeSlider, bustVerticalSlider, bustHorizontalSlider,
-         colorSaturationSlider, materialRoughnessSlider].forEach(updateValue);
-
-        // Save button functionality
-        const saveButton = document.getElementById('saveLightSettings');
+        // Save button listener
         if (saveButton) {
             saveButton.addEventListener('click', () => {
-                console.log('[Save Button] Clicked!'); // Add log
-                const settings = {
-                    mainLight: mainLightSlider.value,
-                    fillLight: fillLightSlider.value,
-                    ambientLight: ambientLightSlider.value,
-                    rimLight: rimLightSlider.value,
-                    bustSize: bustSizeSlider.value,
-                    bustVertical: bustVerticalSlider.value,
-                    bustHorizontal: bustHorizontalSlider.value,
-                    colorSaturation: colorSaturationSlider.value,
-                    materialRoughness: materialRoughnessSlider.value
-                };
-                localStorage.setItem('sceneSettings', JSON.stringify(settings));
-                console.log('Settings saved:', settings);
+                console.log('Save Settings button clicked'); // Log click
+                try {
+                    const settings = {
+                        mainLight: mainLightSlider ? mainLightSlider.value : '1',
+                        fillLight: fillLightSlider ? fillLightSlider.value : '0.5',
+                        ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.2',
+                        rimLight: rimLightSlider ? rimLightSlider.value : '0.5',
+                        exposure: exposureSlider ? exposureSlider.value : '1.0', // Save exposure
+                        bustSize: bustSizeSlider ? bustSizeSlider.value : '1',
+                        bustVertical: bustVerticalSlider ? bustVerticalSlider.value : '0',
+                        bustHorizontal: bustHorizontalSlider ? bustHorizontalSlider.value : '0',
+                        colorSaturation: colorSaturationSlider ? colorSaturationSlider.value : '0',
+                        materialRoughness: materialRoughnessSlider ? materialRoughnessSlider.value : '0.5'
+                    };
+                    localStorage.setItem('lightSettings', JSON.stringify(settings));
+                    console.log('Settings saved:', settings);
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                }
             });
         }
 
-        // Load saved settings
-        const savedSettings = localStorage.getItem('sceneSettings');
-        if (savedSettings) {
+        // Load settings on startup
+        this.loadSettings();
+    }
+
+    loadSettings() {
+        console.log('Loading settings...');
+        const savedSettings = localStorage.getItem('lightSettings');
+        if (!savedSettings) {
+            console.log('No saved settings found.');
+            return;
+        }
+
+        try {
             const settings = JSON.parse(savedSettings);
-            
-            // Load user scale preference first
-            if (settings.bustSize) {
-                const bustSizeSlider = document.getElementById('bustSize');
-                if (bustSizeSlider) {
-                    bustSizeSlider.value = settings.bustSize;
-                    this.userScale = parseFloat(settings.bustSize); // Make sure userScale is updated
-                    console.log(`[LoadSettings] Loaded bustSize: ${settings.bustSize}`); // ADDED LOG
-                    // Manually update the associated span
-                    const valueSpan = bustSizeSlider.nextElementSibling; 
-                    if (valueSpan && valueSpan.classList.contains('value')) {
-                        valueSpan.textContent = parseFloat(settings.bustSize).toFixed(1);
-                    }
-                    // Trigger size update after loading
-                    if (this.bustoLoaded) { 
-                       this.updateBustoSize();
-                    }
+            console.log('Loaded settings:', settings);
+
+            // Map settings to sliders
+            const sliderMap = {
+                mainLight: 'mainLight',
+                fillLight: 'fillLight',
+                ambientLight: 'ambientLight',
+                rimLight: 'rimLight',
+                exposure: 'exposure', // Load exposure
+                bustSize: 'bustSize',
+                bustVertical: 'bustVertical',
+                bustHorizontal: 'bustHorizontal',
+                colorSaturation: 'colorSaturation',
+                materialRoughness: 'materialRoughness'
+            };
+
+            // Helper function to update the displayed value next to the slider
+            const updateValue = (slider) => {
+                const valueSpan = slider.nextElementSibling;
+                if (valueSpan && valueSpan.classList.contains('value')) {
+                     valueSpan.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
                 }
-            }
-            
-            Object.entries(settings).forEach(([key, value]) => {
-                const slider = document.getElementById(key);
-                if (slider) {
+            };
+
+            Object.keys(settings).forEach(key => {
+                const sliderId = sliderMap[key];
+                if (!sliderId) return; // Skip if no corresponding slider ID
+
+                const slider = document.getElementById(sliderId);
+                const value = settings[key];
+
+                if (slider && value !== undefined) {
                     slider.value = value;
-                    updateValue(slider);
+                    updateValue(slider); // Update the displayed value
                 }
             });
-            
+
             // Apply loaded settings
             this.updateLights();
             this.updateBustTransform();
             this.updateMaterialProperties(); // Still needed for roughness on load
+            
+            // Apply loaded exposure
+            if (settings.exposure) {
+                this.renderer.toneMappingExposure = parseFloat(settings.exposure);
+                console.log(`[LoadSettings] Applied loaded exposure: ${this.renderer.toneMappingExposure}`);
+            }
+            
             // Re-enable applying loaded saturation
             if (settings.colorSaturation && this.hueSaturationPass) {
                 const loadedSaturation = parseFloat(settings.colorSaturation);
                 this.hueSaturationPass.uniforms['saturation'].value = loadedSaturation;
                 console.log(`[LoadSettings] Applied loaded saturation to postFX: ${loadedSaturation}`);
             }
+            
             this.updateBustoSize();
+        } catch (error) {
+            console.error('Error loading or applying settings:', error);
         }
     }
 
@@ -843,5 +891,8 @@ class Scene {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, starting application...');
     const myScene = new Scene();
+    myScene.animate();
+    // Ensure controls are set up after the DOM is fully loaded
+    // Moved from constructor
     myScene.setupLightControls();
 }); 
