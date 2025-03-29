@@ -322,20 +322,24 @@ class Scene {
         // Carregar configurações salvas ou usar valores padrão
         const savedSettings = localStorage.getItem('lightSettings');
         const defaultSettings = {
-            mainLight: 3,
+            mainLight: 6,     // Increased default
             fillLight: 0.2,
-            ambientLight: 0.15,
+            ambientLight: 0.3, // Increased default
             rimLight: 0.5
+            // Exposure default is handled by the renderer setting itself
         };
         
         const settings = savedSettings ? JSON.parse(savedSettings) : defaultSettings;
         
+        // Make sure settings have all required keys, falling back to defaults if missing
+        const finalSettings = { ...defaultSettings, ...settings };
+
         // Ambient light for base illumination
-        this.lights.ambient = new THREE.AmbientLight(0xffffff, settings.ambientLight);
+        this.lights.ambient = new THREE.AmbientLight(0xffffff, parseFloat(finalSettings.ambientLight));
         this.scene.add(this.lights.ambient);
 
         // Strong main light from the right
-        this.lights.main = new THREE.SpotLight(0xffffff, settings.mainLight);
+        this.lights.main = new THREE.SpotLight(0xffffff, parseFloat(finalSettings.mainLight));
         this.lights.main.position.set(5, 2, 2);
         this.lights.main.angle = Math.PI / 6;
         this.lights.main.penumbra = 0.2;
@@ -348,12 +352,12 @@ class Scene {
         this.scene.add(this.lights.main);
 
         // Soft fill light from the left
-        this.lights.fill = new THREE.DirectionalLight(0xffffff, settings.fillLight);
+        this.lights.fill = new THREE.DirectionalLight(0xffffff, parseFloat(finalSettings.fillLight));
         this.lights.fill.position.set(-4, 0, 2);
         this.scene.add(this.lights.fill);
 
         // Subtle rim light
-        this.lights.rim = new THREE.SpotLight(0xffffff, settings.rimLight);
+        this.lights.rim = new THREE.SpotLight(0xffffff, parseFloat(finalSettings.rimLight));
         this.lights.rim.position.set(-2, 4, -3);
         this.lights.rim.angle = Math.PI / 5;
         this.lights.rim.penumbra = 0.8;
@@ -498,9 +502,9 @@ class Scene {
                 console.log('Save Settings button clicked'); // Log click
                 try {
                     const settings = {
-                        mainLight: mainLightSlider ? mainLightSlider.value : '1',
-                        fillLight: fillLightSlider ? fillLightSlider.value : '0.5',
-                        ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.2',
+                        mainLight: mainLightSlider ? mainLightSlider.value : '6',       // Updated fallback
+                        fillLight: fillLightSlider ? fillLightSlider.value : '0.2',
+                        ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.3', // Updated fallback
                         rimLight: rimLightSlider ? rimLightSlider.value : '0.5',
                         exposure: exposureSlider ? exposureSlider.value : '1.0', // Save exposure
                         bustSize: bustSizeSlider ? bustSizeSlider.value : '1',
