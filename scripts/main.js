@@ -512,7 +512,7 @@ class Scene {
                         ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.5', // Updated fallback again
                         rimLight: rimLightSlider ? rimLightSlider.value : '0.5',
                         exposure: exposureSlider ? exposureSlider.value : '1.0', // Save exposure
-                        bustSize: bustSizeSlider ? bustSizeSlider.value : '1',
+                        bustSize: bustSizeSlider ? bustSizeSlider.value : '1.3', // Updated fallback
                         bustVertical: bustVerticalSlider ? bustVerticalSlider.value : '0',
                         bustHorizontal: bustHorizontalSlider ? bustHorizontalSlider.value : '0',
                         colorSaturation: colorSaturationSlider ? colorSaturationSlider.value : '0',
