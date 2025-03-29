@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { HueSaturationShader } from 'three/addons/shaders/HueSaturationShader.js';
+// Temporarily comment out post-processing imports
+// import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+// import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+// import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+// import { HueSaturationShader } from 'three/addons/shaders/HueSaturationShader.js';
 
 class Scene {
     constructor() {
@@ -28,8 +29,8 @@ class Scene {
         this.userScale = 1.0; // Add user scale preference
         this.bustoGroup = null; // Group to hold the bust for centering
         this.bustoModel = null; // Reference to the actual loaded model
-        this.composer = null; // For post-processing
-        this.hueSaturationPass = null; // Reference to the saturation pass
+        // this.composer = null; // Temporarily comment out
+        // this.hueSaturationPass = null; // Temporarily comment out
         
         // Variables for head animation
         this.headAnimation = {
@@ -43,7 +44,7 @@ class Scene {
         this.initScene();
         this.setupLights();
         this.setupControls();
-        this.setupPostProcessing();
+        // this.setupPostProcessing(); // Temporarily comment out
         this.loadModels();
         this.createOrbitalSpheres();
         this.setupEventListeners();
@@ -363,6 +364,7 @@ class Scene {
         this.scene.add(this.lights.back);
     }
 
+    /* Temporarily comment out setupPostProcessing
     setupPostProcessing() {
         this.composer = new EffectComposer(this.renderer);
         
@@ -378,6 +380,7 @@ class Scene {
         
         console.log('Post-processing composer set up.');
     }
+    */
 
     setupLightControls() {
         console.log('Setting up light controls...');
@@ -455,18 +458,19 @@ class Scene {
                 
                 // Update specific effect based on slider ID
                 if (e.target.id === 'colorSaturation') {
+                    /* Temporarily comment out uniform update
                     if (this.hueSaturationPass) {
                         const saturationValue = parseFloat(e.target.value);
                         this.hueSaturationPass.uniforms['saturation'].value = saturationValue;
                         console.log(`[PostFX] Set saturation uniform: ${saturationValue}`); // Add log
                     }
+                    */
+                   console.log('Saturation slider moved (PostFX disabled)'); // Temp log
                 } else if (e.target.id === 'materialRoughness') {
                     // Roughness still needs to update the actual material
                     this.updateMaterialProperties(); 
                 }
                 
-                // REMOVED: No longer call updateMaterialProperties for saturation
-                // this.updateMaterialProperties(); 
             });
         });
 
@@ -532,12 +536,13 @@ class Scene {
             this.updateLights();
             this.updateBustTransform(); 
             this.updateMaterialProperties(); // Still needed for roughness on load
-            // Apply loaded saturation to post-processing pass
+            /* Temporarily comment out applying loaded saturation
             if (settings.colorSaturation && this.hueSaturationPass) {
                 const loadedSaturation = parseFloat(settings.colorSaturation);
                 this.hueSaturationPass.uniforms['saturation'].value = loadedSaturation;
                 console.log(`[LoadSettings] Applied loaded saturation to postFX: ${loadedSaturation}`);
             }
+            */
             this.updateBustoSize(); 
         }
     }
@@ -734,12 +739,16 @@ class Scene {
         this.updateOrbitalSpheres(deltaTime);
 
         // Use composer to render instead of renderer directly
+        /* Temporarily comment out composer render
         if (this.composer) {
             this.composer.render(deltaTime);
         } else {
             // Fallback if composer failed
             this.renderer.render(this.scene, this.camera); 
         }
+        */
+       // Render directly for now
+       this.renderer.render(this.scene, this.camera);
     }
 
     updateHeadAnimation(deltaTime) {
@@ -766,9 +775,11 @@ class Scene {
         this.camera.updateProjectionMatrix();
         
         this.renderer.setSize(width, height);
+        /* Temporarily comment out composer resize
         if (this.composer) { // Resize composer as well
             this.composer.setSize(width, height);
         }
+        */
         
         // Update GROUP size and position on resize
         if (this.bustoLoaded) {
