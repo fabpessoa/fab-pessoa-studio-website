@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-// Temporarily comment out post-processing imports
-// import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-// import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-// import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-// import { HueSaturationShader } from 'three/addons/shaders/HueSaturationShader.js';
+// Re-enable post-processing imports
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { HueSaturationShader } from 'three/addons/shaders/HueSaturationShader.js';
 
 class Scene {
     constructor() {
@@ -29,8 +29,8 @@ class Scene {
         this.userScale = 1.0; // Add user scale preference
         this.bustoGroup = null; // Group to hold the bust for centering
         this.bustoModel = null; // Reference to the actual loaded model
-        // this.composer = null; // Temporarily comment out
-        // this.hueSaturationPass = null; // Temporarily comment out
+        this.composer = null; // Re-enable
+        this.hueSaturationPass = null; // Re-enable
         
         // Variables for head animation
         this.headAnimation = {
@@ -44,7 +44,7 @@ class Scene {
         this.initScene();
         this.setupLights();
         this.setupControls();
-        // this.setupPostProcessing(); // Temporarily comment out
+        this.setupPostProcessing(); // Re-enable
         this.loadModels();
         this.createOrbitalSpheres();
         this.setupEventListeners();
@@ -364,10 +364,10 @@ class Scene {
         this.scene.add(this.lights.back);
     }
 
-    /* Temporarily comment out setupPostProcessing
+    // Re-enable setupPostProcessing
     setupPostProcessing() {
         this.composer = new EffectComposer(this.renderer);
-        
+
         // 1. Render the original scene
         const renderPass = new RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
@@ -375,12 +375,11 @@ class Scene {
         // 2. Add Hue/Saturation pass
         this.hueSaturationPass = new ShaderPass(HueSaturationShader);
         // Initialize saturation uniform (0 = no change)
-        this.hueSaturationPass.uniforms['saturation'].value = 0.0; 
+        this.hueSaturationPass.uniforms['saturation'].value = 0.0;
         this.composer.addPass(this.hueSaturationPass);
-        
+
         console.log('Post-processing composer set up.');
     }
-    */
 
     setupLightControls() {
         console.log('Setting up light controls...');
@@ -455,22 +454,21 @@ class Scene {
             slider.addEventListener('input', (e) => {
                 console.log(`[Material Listener] Input event fired for ${e.target.id}`); // Keep this log
                 updateValue(e.target); // Update the UI number
-                
+
                 // Update specific effect based on slider ID
                 if (e.target.id === 'colorSaturation') {
-                    /* Temporarily comment out uniform update
+                    // Re-enable uniform update
                     if (this.hueSaturationPass) {
                         const saturationValue = parseFloat(e.target.value);
                         this.hueSaturationPass.uniforms['saturation'].value = saturationValue;
                         console.log(`[PostFX] Set saturation uniform: ${saturationValue}`); // Add log
                     }
-                    */
-                   console.log('Saturation slider moved (PostFX disabled)'); // Temp log
+                   // console.log('Saturation slider moved (PostFX disabled)'); // Remove temp log
                 } else if (e.target.id === 'materialRoughness') {
                     // Roughness still needs to update the actual material
-                    this.updateMaterialProperties(); 
+                    this.updateMaterialProperties();
                 }
-                
+
             });
         });
 
@@ -534,16 +532,15 @@ class Scene {
             
             // Apply loaded settings
             this.updateLights();
-            this.updateBustTransform(); 
+            this.updateBustTransform();
             this.updateMaterialProperties(); // Still needed for roughness on load
-            /* Temporarily comment out applying loaded saturation
+            // Re-enable applying loaded saturation
             if (settings.colorSaturation && this.hueSaturationPass) {
                 const loadedSaturation = parseFloat(settings.colorSaturation);
                 this.hueSaturationPass.uniforms['saturation'].value = loadedSaturation;
                 console.log(`[LoadSettings] Applied loaded saturation to postFX: ${loadedSaturation}`);
             }
-            */
-            this.updateBustoSize(); 
+            this.updateBustoSize();
         }
     }
 
@@ -740,17 +737,13 @@ class Scene {
              this.updateOrbitalObjects(deltaTime);
         }
 
-        // Use composer to render instead of renderer directly
-        /* Temporarily comment out composer render
+        // Re-enable composer render
         if (this.composer) {
             this.composer.render(deltaTime);
         } else {
             // Fallback if composer failed
-            this.renderer.render(this.scene, this.camera); 
+            this.renderer.render(this.scene, this.camera);
         }
-        */
-       // Render directly for now
-       this.renderer.render(this.scene, this.camera);
     }
 
     updateHeadAnimation(deltaTime) {
@@ -777,11 +770,10 @@ class Scene {
         this.camera.updateProjectionMatrix();
         
         this.renderer.setSize(width, height);
-        /* Temporarily comment out composer resize
+        // Re-enable composer resize
         if (this.composer) { // Resize composer as well
             this.composer.setSize(width, height);
         }
-        */
         
         // Update GROUP size and position on resize
         if (this.bustoLoaded) {
