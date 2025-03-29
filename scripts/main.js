@@ -636,7 +636,7 @@ class Scene {
             return; 
         }
 
-        // Calculate final scale based on calculated initial scale and user slider
+        // Final scale is the base scale multiplied by the user slider
         const finalScale = this.initialScale * this.userScale;
 
         // Check for NaN or invalid scale values
@@ -645,11 +645,9 @@ class Scene {
             return;
         }
         
-        console.log(`[Size Calc] initial=${this.initialScale.toFixed(3)}, user=${this.userScale.toFixed(3)} -> finalScale=${finalScale.toFixed(3)}`);
-
-        // Apply scale to the GROUP
+        // Apply the combined scale
         this.bustoGroup.scale.set(finalScale, finalScale, finalScale);
-        console.log(`[Size Set] Applied scale to group: ${this.bustoGroup.scale.x.toFixed(3)}`);
+        console.log(`[Size Set] initial=${this.initialScale.toFixed(3)}, user=${this.userScale.toFixed(3)} -> Applied scale: ${finalScale.toFixed(3)}`);
     }
 
     loadModels() {
@@ -669,21 +667,10 @@ class Scene {
             'assets/models/busto2.glb',
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
-                const model = gltf.scene; // The raw loaded model scene
-                this.bustoModel = model; // Keep reference if needed elsewhere
+                this.bustoModel = gltf.scene; // The raw loaded model scene
 
-                // --- Parent Group Setup ---
-                this.bustoGroup = new THREE.Group();
-
-                // Estimate center offset (adjust this value based on the model)
-                // const offsetY = -6; // TEMPORARILY REMOVED OFFSET
-                model.position.y = 0; // Position model at group origin
-                // Center horizontally and depth-wise within the group
-                model.position.x = 0; 
-                model.position.z = 0;
-
-                // Configure materials (on the actual model)
-                model.traverse((child) => {
+                // Configure materials FIRST
+                this.bustoModel.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
@@ -697,33 +684,32 @@ class Scene {
                     }
                 });
                 
-                // Add model to the group
-                this.bustoGroup.add(model);
-
-                // Add the GROUP to the scene
-                this.scene.add(this.bustoGroup);
+                // --- Parent Group Setup ---
+                this.bustoGroup = new THREE.Group();
+                this.bustoGroup.add(this.bustoModel); // Add model (at 0,0,0 relative to group)
+                this.scene.add(this.bustoGroup); // Add group to the scene
                 // --------------------------
-                console.log('Group added to scene');
-                console.log('Group initial position (before updates):', this.bustoGroup.position.clone());
-                console.log('Group initial scale (before updates):', this.bustoGroup.scale.clone());
-                console.log('Model position inside group:', model.position.clone());
-                console.log('Camera position:', this.camera.position.clone());
 
-                // Initial setup: Apply transforms TO THE GROUP
-                this.updateBustTransform(); // Apply slider positions
-                this.updateBustoSize(); // RESTORED: Apply initial size update
+                // Center the MODEL within the GROUP *AFTER* adding to group
+                const box = new THREE.Box3().setFromObject(this.bustoModel);
+                const center = box.getCenter(new THREE.Vector3());
+                this.bustoModel.position.sub(center); // Model is now centered at group's origin
+
+                // Set GROUP's desired base position
+                this.basePositionY = -6; // Adjust as needed for vertical baseline
+                this.bustoGroup.position.set(0, this.basePositionY, 0); 
+                console.log('Group centered and positioned.');
 
                 this.bustoLoaded = true;
-                console.log('Bust loaded and added to group.');
-                
-                // Calculate and set the initial scale AFTER model is loaded and centered
-                this.calculateAndSetInitialBustScale();
+
+                // Calculate and apply initial scale *LAST*
+                this.calculateAndSetInitialBustScale(); // This function now calls updateBustoSize internally
 
                 if (loadingElement) loadingElement.style.display = 'none';
-                
-                console.log('Bust Group initialized');
-                console.log('Group position (after transform update):', this.bustoGroup.position.clone());
-                console.log('Group scale (should be 1,1,1 initially):', this.bustoGroup.scale.clone());
+                console.log('Bust setup complete.');
+                // Log final state
+                console.log('Group position:', this.bustoGroup.position.clone());
+                console.log('Group scale:', this.bustoGroup.scale.clone());
             },
             (xhr) => {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
@@ -892,23 +878,19 @@ class Scene {
         });
     }
 
-    // NEW Function to calculate the base scale
+    // REVISED Function to calculate the base scale
     calculateAndSetInitialBustScale() {
         if (!this.bustoModel || !this.bustoGroup) return;
 
-        // Ensure original dimensions are stored only once
-        if (this.bustDimensions.width === 1 && this.bustDimensions.height === 1) {
-             // Calculate the initial bounding box of the *model itself* before any scaling
-            const initialBox = new THREE.Box3().setFromObject(this.bustoModel);
-            this.bustDimensions.width = initialBox.max.x - initialBox.min.x;
-            this.bustDimensions.height = initialBox.max.y - initialBox.min.y;
-            if (this.bustDimensions.width <= 0 || this.bustDimensions.height <= 0) {
-                console.error("Failed to get valid initial bust dimensions.");
-                this.bustDimensions = { width: 1, height: 1 }; // Reset to prevent division by zero
-                return;
-            }
-            console.log(`[Bust Init] Stored original dimensions: W=${this.bustDimensions.width.toFixed(2)}, H=${this.bustDimensions.height.toFixed(2)}`);
+        // Recalculate original dimensions every time, in case model changes
+        const initialBox = new THREE.Box3().setFromObject(this.bustoModel);
+        this.bustDimensions.width = initialBox.max.x - initialBox.min.x;
+        this.bustDimensions.height = initialBox.max.y - initialBox.min.y;
+        if (this.bustDimensions.width <= 0 || this.bustDimensions.height <= 0) {
+            console.error("Failed to get valid initial bust dimensions on recalculation.");
+            return;
         }
+        // No longer log storing here, just use the values
 
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -918,13 +900,14 @@ class Scene {
         const scaleBasedOnHeight = targetHeight / this.bustDimensions.height;
         const scaleBasedOnWidth = targetWidth / this.bustDimensions.width;
 
-        // Use the smaller scale factor to ensure the bust fits within both dimensions
-        this.initialScale = Math.min(scaleBasedOnHeight, scaleBasedOnWidth);
+        // This is the base scale needed to fit 80% viewport
+        const requiredScale = Math.min(scaleBasedOnHeight, scaleBasedOnWidth);
+        this.initialScale = requiredScale; // Store this calculated base scale
 
-        console.log(`[Bust Init] Viewport: W=${viewportWidth}, H=${viewportHeight}. Target: W=${targetWidth.toFixed(2)}, H=${targetHeight.toFixed(2)}. Calculated initialScale: ${this.initialScale.toFixed(3)}`);
+        console.log(`[Bust Scale Calc] Viewport: W=${viewportWidth}, H=${viewportHeight}. Target: W=${targetWidth.toFixed(2)}, H=${targetHeight.toFixed(2)}. Base scale needed: ${this.initialScale.toFixed(3)}`);
 
-        // Apply the newly calculated scale immediately
-        this.updateBustoSize();
+        // Apply the scale combined with the user's current slider value
+        this.updateBustoSize(); // Calls the revised updateBustoSize
     }
 }
 
