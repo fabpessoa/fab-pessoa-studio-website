@@ -339,7 +339,7 @@ class Scene {
         
         // Make sure settings have all required keys, falling back to defaults if missing
         const finalSettings = { ...defaultSettings, ...settings };
-
+        
         // Ambient light for base illumination
         this.lights.ambient = new THREE.AmbientLight(0xffffff, parseFloat(finalSettings.ambientLight));
         this.scene.add(this.lights.ambient);
@@ -625,7 +625,11 @@ class Scene {
     }
 
     updateBustoSize() {
-        if (!this.bustoGroup) return; // Check if the group exists
+        console.log('[Entry] updateBustoSize entered'); // ADD ENTRY LOG
+        if (!this.bustoGroup) {
+            console.log('[UpdateBustoSize] Exiting: bustoGroup not found.');
+            return; 
+        }
         
         // Ensure scale factors are valid numbers
         if (typeof this.initialScale !== 'number' || typeof this.userScale !== 'number') {
@@ -633,9 +637,9 @@ class Scene {
                 `initial=${this.initialScale}`, 
                 `user=${this.userScale}`
             );
-            return; 
+            return;
         }
-
+        
         // Final scale is the base scale multiplied by the user slider
         const finalScale = this.initialScale * this.userScale;
 
@@ -674,7 +678,7 @@ class Scene {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
-                        child.renderOrder = 2; 
+                        child.renderOrder = 2;
                         if (child.material) {
                             child.material.metalness = 0.3;
                             child.material.roughness = 0.7;
@@ -702,6 +706,15 @@ class Scene {
 
                 this.bustoLoaded = true;
 
+                // --- Log state right before initial scale calculation ---
+                if (this.bustoModel) {
+                    const currentBox = new THREE.Box3().setFromObject(this.bustoModel);
+                    console.log('[Pre-Scale Check] Bust model exists. Current BBox Min:', currentBox.min.clone(), 'Max:', currentBox.max.clone());
+                } else {
+                    console.error('[Pre-Scale Check] Bust model NOT found before initial scale calculation!');
+                }
+                // -------------------------------------------------------
+                
                 // Calculate and apply initial scale *LAST*
                 this.calculateAndSetInitialBustScale(); // This function now calls updateBustoSize internally
 
@@ -761,14 +774,14 @@ class Scene {
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
-
+        
         const deltaTime = this.clock.getDelta();
 
         // Update orbital controls
         if (this.controls) {
             this.controls.update();
         }
-
+        
         // Update head animation
         this.updateHeadAnimation(deltaTime);
         
@@ -782,7 +795,7 @@ class Scene {
             this.composer.render(deltaTime);
         } else {
             // Fallback if composer failed
-            this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera);
         }
     }
 
@@ -800,7 +813,7 @@ class Scene {
         // Update animation time
         this.headAnimation.time = time;
     }
-
+    
     resize() {
         console.log('Resizing scene...');
         const width = window.innerWidth;
@@ -880,7 +893,11 @@ class Scene {
 
     // REVISED Function to calculate the base scale
     calculateAndSetInitialBustScale() {
-        if (!this.bustoModel || !this.bustoGroup) return;
+        console.log('[Entry] calculateAndSetInitialBustScale entered'); // ADD ENTRY LOG
+        if (!this.bustoModel || !this.bustoGroup) {
+            console.log('[CalcInitialScale] Exiting: bustoModel or bustoGroup not found.');
+            return;
+        }
 
         // Recalculate original dimensions every time, in case model changes
         const initialBox = new THREE.Box3().setFromObject(this.bustoModel);
