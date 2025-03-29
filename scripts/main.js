@@ -422,11 +422,13 @@ class Scene {
             });
         }
 
+        // Corrected Listener for Saturation and Roughness
         [colorSaturationSlider, materialRoughnessSlider].forEach(slider => {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
-                updateValue(e.target);
-                this.updateMaterialProperties(); // Call as class method
+                console.log(`[Material Listener] Input event fired for ${e.target.id}`); // ADDED Correct LOG
+                updateValue(e.target); // Update the UI number
+                this.updateMaterialProperties(); // Update the material visuals
             });
         });
 
