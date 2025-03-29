@@ -12,6 +12,7 @@ class Scene {
         
         // Animation timing configuration
         this.lastTime = performance.now();
+        this.clock = new THREE.Clock();
         
         // Initialize variables
         this.container = document.getElementById('scene-container');
