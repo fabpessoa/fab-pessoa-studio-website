@@ -222,39 +222,64 @@
         }
 
         .control-group {
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: 15px;
         }
 
         .control-group label {
             display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
             margin-bottom: 5px;
-            font-size: 14px;
+            letter-spacing: 0.05em;
         }
 
-        .control-group input[type="range"] {
-            width: 200px;
-            margin-right: var(--spacing-sm);
+        .control-group .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .control-group .value {
-            font-size: 12px;
-            color: #aaa;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            min-width: 25px;
+            text-align: right;
         }
 
-        .save-button {
+        .control-group input[type="range"] {
             width: 100%;
-            padding: var(--spacing-sm);
-            background: var(--color-primary);
-            border: none;
-            border-radius: 5px;
-            color: var(--color-text);
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.3s ease;
+            accent-color: #ffffff;
+            order: 2;
+            flex-grow: 1;
+        }
+        
+        .control-group .value {
+             order: 1;
         }
 
-        .save-button:hover {
-            background: var(--color-primary-hover);
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .save-button, .reset-button {
+            flex-grow: 1;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .save-button:hover, .reset-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
         }
 
         .site-title {
@@ -278,21 +303,20 @@
 
         @media (max-width: 768px) {
             .site-title {
-                font-size: calc(100vw / 6); /* Reduced font size for better fit */
+                font-size: calc(100vw / 6);
                 width: 80%;
                 left: var(--spacing-sm);
-                transform: none; /* Remove centering transform */
+                transform: none;
                 text-align: left;
                 top: var(--spacing-lg);
-                letter-spacing: -0.05em; /* Slightly reduce letter spacing on mobile */
-                line-height: 1; /* Increase line height for better readability */
+                letter-spacing: -0.05em;
+                line-height: 1;
             }
         }
 
-        /* Add additional breakpoint for very small screens */
         @media (max-width: 480px) {
             .site-title {
-                font-size: calc(100vw / 7); /* Even smaller font size for very small screens */
+                font-size: calc(100vw / 7);
                 top: calc(var(--spacing-lg) / 2);
                 left: var(--spacing-sm);
             }
@@ -423,66 +447,83 @@
         <div class="controls-content">
             <h3>Lighting</h3>
             <div class="control-group">
-                <label>Main Light (Right)
-                    <input type="range" id="mainLight" min="0" max="10" step="0.1" value="8">
+                <label>Main Light (Right)</label>
+                <div class="slider-container">
                     <span class="value">8.0</span>
-                </label>
+                    <input type="range" id="mainLight" min="0" max="10" step="0.1" value="8">
+                </div>
             </div>
             <div class="control-group">
-                <label>Fill Light (Left)
-                    <input type="range" id="fillLight" min="0" max="2" step="0.1" value="0.2">
+                <label>Fill Light (Left)</label>
+                 <div class="slider-container">
                     <span class="value">0.2</span>
-                </label>
+                    <input type="range" id="fillLight" min="0" max="2" step="0.1" value="0.2">
+                 </div>
             </div>
             <div class="control-group">
-                <label>Ambient Light
-                    <input type="range" id="ambientLight" min="0" max="1" step="0.05" value="0.5">
+                <label>Ambient Light</label>
+                <div class="slider-container">
                     <span class="value">0.50</span>
-                </label>
+                    <input type="range" id="ambientLight" min="0" max="1" step="0.05" value="0.5">
+                </div>
             </div>
             <div class="control-group">
-                <label>Rim Light
-                    <input type="range" id="rimLight" min="0" max="5" step="0.1" value="0.5">
+                <label>Rim Light</label>
+                <div class="slider-container">
                     <span class="value">0.5</span>
-                </label>
+                    <input type="range" id="rimLight" min="0" max="5" step="0.1" value="0.5">
+                </div>
             </div>
             <div class="control-group">
-                <label>Exposure
-                    <input type="range" id="exposure" min="0.1" max="5" step="0.05" value="1.0">
+                <label>Exposure</label>
+                <div class="slider-container">
                     <span class="value">1.0</span>
-                </label>
+                    <input type="range" id="exposure" min="0.1" max="5" step="0.05" value="1.0">
+                </div>
             </div>
 
             <h3 style="margin-top: 20px;">Model Adjustments</h3>
             <div class="control-group">
-                <label>Bust Size
+                <label>Bust Size</label>
+                <div class="slider-container">
+                    <span class="value">1.0</span>
                     <input type="range" id="bustSize" min="0.5" max="2" step="0.1" value="1.0">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Vertical Position</label>
+                <div class="slider-container">
+                    <span class="value">-6.0</span>
+                    <input type="range" id="bustVertical" min="-10" max="2" step="0.5" value="-6">
+                 </div>
+            </div>
+            <div class="control-group">
+                <label>Horizontal Position</label>
+                <div class="slider-container">
                     <span class="value">1.0</span>
-                </label>
-            </div>
-            <div class="control-group">
-                <label for="bustVertical">Vertical Position: <span class="value">-6.0</span></label>
-                <input type="range" id="bustVertical" min="-10" max="2" step="0.5" value="-6">
-            </div>
-            <div class="control-group">
-                <label>Horizontal Position
                     <input type="range" id="bustHorizontal" min="-5" max="5" step="0.5" value="1">
-                    <span class="value">1.0</span>
-                </label>
+                </div>
             </div>
 
             <h3 style="margin-top: 20px;">Material</h3>
             <div class="control-group">
-                <label for="colorSaturation">Color Saturation: <span class="value">0.0</span></label>
-                <input type="range" id="colorSaturation" min="-1" max="1" step="0.1" value="0">
+                <label>Color Saturation</label>
+                <div class="slider-container">
+                    <span class="value">0.0</span>
+                    <input type="range" id="colorSaturation" min="-1" max="1" step="0.1" value="0">
+                </div>
             </div>
             <div class="control-group">
-                <label>Material Roughness
-                    <input type="range" id="materialRoughness" min="0" max="1" step="0.1" value="0.7">
+                <label>Material Roughness</label>
+                <div class="slider-container">
                     <span class="value">0.7</span>
-                </label>
+                    <input type="range" id="materialRoughness" min="0" max="1" step="0.1" value="0.7">
+                </div>
             </div>
-            <button id="saveLightSettings" class="save-button">Save Settings</button>
+            <div class="button-container">
+                <button id="saveLightSettings" class="save-button">Save Settings</button>
+                <button id="resetSettings" class="reset-button">Reset Settings</button>
+            </div>
         </div>
     </div>
 
@@ -506,52 +547,41 @@
             panel.classList.toggle('collapsed');
         });
         
-        // Function to ensure canvas is transparent
         function ensureCanvasTransparency() {
             const canvas = document.querySelector('canvas');
             if (canvas) {
                 console.log('Ensuring canvas transparency');
-                // Apply transparency
                 canvas.style.setProperty('background-color', 'transparent', 'important');
                 canvas.setAttribute('style', 'background-color: transparent !important');
             }
         }
         
-        // Ensure site title is visible
         document.addEventListener('DOMContentLoaded', function() {
-            // Make sure the title is visible
             const siteTitle = document.querySelector('.site-title');
             if (siteTitle) {
-                // Force a reflow to ensure visibility
                 siteTitle.style.display = 'none';
                 setTimeout(() => {
                     siteTitle.style.display = 'block';
                 }, 100);
             }
             
-            // Debug background colors
             console.log('Body background:', getComputedStyle(document.body).backgroundColor);
             console.log('Scene container background:', getComputedStyle(document.getElementById('scene-container')).backgroundColor);
             
-            // Ensure proper background colors
             document.documentElement.style.backgroundColor = '#000000';
             document.body.style.backgroundColor = '#000000';
             document.getElementById('scene-container').style.backgroundColor = 'transparent';
             
-            // Try multiple attempts to ensure canvas transparency
-            ensureCanvasTransparency(); // Try immediately
+            ensureCanvasTransparency();
             setTimeout(ensureCanvasTransparency, 500);
             setTimeout(ensureCanvasTransparency, 1000);
             
-            // Final check
             setTimeout(() => {
                 const canvas = document.querySelector('canvas');
                 if (canvas) {
                     console.log('Canvas background color:', getComputedStyle(canvas).backgroundColor);
-                    // Ensure canvas remains transparent
                     canvas.style.setProperty('background-color', 'transparent', 'important');
                     
-                    // Create an observer to maintain transparency
                     const observer = new MutationObserver((mutations) => {
                         mutations.forEach((mutation) => {
                             if (mutation.attributeName === 'style') {

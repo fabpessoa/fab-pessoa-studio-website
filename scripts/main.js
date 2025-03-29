@@ -36,7 +36,7 @@ class Scene {
         this.mixer = null; // Animation mixer for bust
         this.initialScale = 1.0; // No longer used for dynamic viewport scaling
         this.responsiveScale = 1.0; // Not used
-        this.baseScale = 25.0; // REDUCED: Fixed base scale for the bust
+        this.baseScale = 12.5; // UPDATED: Base scale based on user feedback (0.5 * previous 25)
         this.bustDimensions = { width: 1, height: 1 }; // Still useful for info
         
         // Variables for head animation
@@ -411,6 +411,7 @@ class Scene {
         const materialRoughnessSlider = document.getElementById('materialRoughness');
         const exposureSlider = document.getElementById('exposure');
         const saveButton = document.getElementById('saveLightSettings');
+        const resetButton = document.getElementById('resetSettings'); // Get Reset button
 
         // Check if elements were found
         if (!mainLightSlider) console.error('Main Light Slider NOT FOUND');
@@ -424,12 +425,18 @@ class Scene {
         if (!materialRoughnessSlider) console.error('Material Roughness Slider NOT FOUND');
         if (!exposureSlider) console.error('Exposure Slider NOT FOUND');
         if (!saveButton) console.error('Save Button NOT FOUND');
+        if (!resetButton) console.error('Reset Button NOT FOUND'); // Check Reset button
 
         // Helper function to update the displayed value next to the slider
         const updateValue = (slider) => {
-            const valueSpan = slider.nextElementSibling;
-            if (valueSpan && valueSpan.classList.contains('value')) {
+            // Find the span with class 'value' INSIDE the parent '.slider-container'
+            const container = slider.closest('.slider-container');
+            if (!container) return;
+            const valueSpan = container.querySelector('.value');
+            if (valueSpan) { // Check if span exists
                 valueSpan.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
+            } else {
+                 console.warn('Value span not found for slider:', slider.id);
             }
         };
 
@@ -526,6 +533,21 @@ class Scene {
                     console.log('Settings saved:', settings);
                 } catch (error) {
                     console.error('Error saving settings:', error);
+                }
+            });
+        }
+
+        // Reset button listener
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                console.log('Reset Settings button clicked');
+                try {
+                    localStorage.removeItem('lightSettings');
+                    console.log('Stored settings removed.');
+                    // Refresh the page to apply default settings
+                    window.location.reload(); 
+                } catch (error) {
+                    console.error('Error removing settings:', error);
                 }
             });
         }
@@ -629,7 +651,7 @@ class Scene {
         console.log('[Entry] updateBustoSize entered'); 
         if (!this.bustoGroup) {
             console.log('[UpdateBustoSize] Exiting: bustoGroup not found.');
-            return; 
+            return;
         }
         
         // Ensure scale factors are valid numbers
@@ -671,8 +693,8 @@ class Scene {
             'assets/models/busto2.glb',
             (gltf) => {
                 console.log('SUCCESS! Bust loaded successfully');
-                this.bustoModel = gltf.scene; 
-
+                this.bustoModel = gltf.scene;
+                
                 // Configure materials FIRST
                 this.bustoModel.traverse((child) => {
                     if (child.isMesh) {
@@ -708,11 +730,11 @@ class Scene {
                 console.log(`Group centered and initially positioned at Y=${initialVertical}.`);
 
                 // Apply the FIXED base scale * User Scale IMMEDIATELY
-                this.updateBustoSize(); 
+                this.updateBustoSize();
                 console.log(`[Bust Init] Applied initial scale using baseScale=${this.baseScale} & userScale=${this.userScale}`);
-
+                
                 this.bustoLoaded = true;
-
+                
                 if (loadingElement) loadingElement.style.display = 'none';
                 console.log('Bust setup complete.');
                 console.log('Group position:', this.bustoGroup.position.clone());
