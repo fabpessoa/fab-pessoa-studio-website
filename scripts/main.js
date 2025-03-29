@@ -36,7 +36,7 @@ class Scene {
         this.mixer = null; // Animation mixer for bust
         this.initialScale = 1.0; // No longer used for dynamic viewport scaling
         this.responsiveScale = 1.0; // Not used
-        this.baseScale = 30.0; // NEW: Fixed base scale for the bust
+        this.baseScale = 25.0; // REDUCED: Fixed base scale for the bust
         this.bustDimensions = { width: 1, height: 1 }; // Still useful for info
         
         // Variables for head animation
@@ -516,8 +516,8 @@ class Scene {
                         ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.5', 
                         rimLight: rimLightSlider ? rimLightSlider.value : '0.5',
                         exposure: exposureSlider ? exposureSlider.value : '1.0', 
-                        bustSize: bustSizeSlider ? bustSizeSlider.value : '1.0', // Updated fallback to 1.0
-                        bustVertical: bustVerticalSlider ? bustVerticalSlider.value : '0',
+                        bustSize: bustSizeSlider ? bustSizeSlider.value : '1.0', 
+                        bustVertical: bustVerticalSlider ? bustVerticalSlider.value : '-6', // UPDATED Fallback Vertical Position
                         bustHorizontal: bustHorizontalSlider ? bustHorizontalSlider.value : '0',
                         colorSaturation: colorSaturationSlider ? colorSaturationSlider.value : '0',
                         materialRoughness: materialRoughnessSlider ? materialRoughnessSlider.value : '0.5'
@@ -531,7 +531,7 @@ class Scene {
         }
 
         // Load settings on startup
-        this.loadSettings();
+        this.loadSettings(); // This will now load -6 if saved, or apply defaults which we'll fix in HTML
     }
 
     loadSettings() {
@@ -701,9 +701,11 @@ class Scene {
                 this.bustDimensions.height = box.max.y - box.min.y;
                 console.log(`[Bust Init] Raw dimensions: W=${this.bustDimensions.width.toFixed(2)}, H=${this.bustDimensions.height.toFixed(2)}`);
 
-                this.basePositionY = -6; 
-                this.bustoGroup.position.set(0, this.basePositionY, 0); 
-                console.log('Group centered and positioned.');
+                // this.basePositionY = -6; // We now set default via slider value and loadSettings correctly handles it.
+                // We still need to set initial position in case no settings are saved.
+                const initialVertical = (localStorage.getItem('lightSettings') && JSON.parse(localStorage.getItem('lightSettings')).bustVertical) ? parseFloat(JSON.parse(localStorage.getItem('lightSettings')).bustVertical) : -6; // Default to -6 if not saved
+                this.bustoGroup.position.set(0, initialVertical, 0); 
+                console.log(`Group centered and initially positioned at Y=${initialVertical}.`);
 
                 // Apply the FIXED base scale * User Scale IMMEDIATELY
                 this.updateBustoSize(); 
