@@ -322,9 +322,9 @@ class Scene {
         // Carregar configurações salvas ou usar valores padrão
         const savedSettings = localStorage.getItem('lightSettings');
         const defaultSettings = {
-            mainLight: 6,     // Increased default
+            mainLight: 8,     // Increased default again
             fillLight: 0.2,
-            ambientLight: 0.3, // Increased default
+            ambientLight: 0.5, // Increased default again
             rimLight: 0.5
             // Exposure default is handled by the renderer setting itself
         };
@@ -502,9 +502,9 @@ class Scene {
                 console.log('Save Settings button clicked'); // Log click
                 try {
                     const settings = {
-                        mainLight: mainLightSlider ? mainLightSlider.value : '6',       // Updated fallback
+                        mainLight: mainLightSlider ? mainLightSlider.value : '8',       // Updated fallback again
                         fillLight: fillLightSlider ? fillLightSlider.value : '0.2',
-                        ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.3', // Updated fallback
+                        ambientLight: ambientLightSlider ? ambientLightSlider.value : '0.5', // Updated fallback again
                         rimLight: rimLightSlider ? rimLightSlider.value : '0.5',
                         exposure: exposureSlider ? exposureSlider.value : '1.0', // Save exposure
                         bustSize: bustSizeSlider ? bustSizeSlider.value : '1',
