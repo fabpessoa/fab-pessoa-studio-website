@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { HueSaturationShader } from 'three/examples/jsm/shaders/HueSaturationShader.js';
 
 class Scene {
     constructor() {
@@ -23,6 +27,8 @@ class Scene {
         this.userScale = 1.0; // Add user scale preference
         this.bustoGroup = null; // Group to hold the bust for centering
         this.bustoModel = null; // Reference to the actual loaded model
+        this.composer = null; // For post-processing
+        this.hueSaturationPass = null; // Reference to the saturation pass
         
         // Variables for head animation
         this.headAnimation = {
@@ -36,6 +42,7 @@ class Scene {
         this.initScene();
         this.setupLights();
         this.setupControls();
+        this.setupPostProcessing();
         this.loadModels();
         this.createOrbitalSpheres();
         this.setupEventListeners();
@@ -355,6 +362,22 @@ class Scene {
         this.scene.add(this.lights.back);
     }
 
+    setupPostProcessing() {
+        this.composer = new EffectComposer(this.renderer);
+        
+        // 1. Render the original scene
+        const renderPass = new RenderPass(this.scene, this.camera);
+        this.composer.addPass(renderPass);
+
+        // 2. Add Hue/Saturation pass
+        this.hueSaturationPass = new ShaderPass(HueSaturationShader);
+        // Initialize saturation uniform (0 = no change)
+        this.hueSaturationPass.uniforms['saturation'].value = 0.0; 
+        this.composer.addPass(this.hueSaturationPass);
+        
+        console.log('Post-processing composer set up.');
+    }
+
     setupLightControls() {
         console.log('Setting up light controls...');
         
@@ -426,9 +449,23 @@ class Scene {
         [colorSaturationSlider, materialRoughnessSlider].forEach(slider => {
             if (!slider) return;
             slider.addEventListener('input', (e) => {
-                console.log(`[Material Listener] Input event fired for ${e.target.id}`); // ADDED Correct LOG
+                console.log(`[Material Listener] Input event fired for ${e.target.id}`); // Keep this log
                 updateValue(e.target); // Update the UI number
-                this.updateMaterialProperties(); // Update the material visuals
+                
+                // Update specific effect based on slider ID
+                if (e.target.id === 'colorSaturation') {
+                    if (this.hueSaturationPass) {
+                        const saturationValue = parseFloat(e.target.value);
+                        this.hueSaturationPass.uniforms['saturation'].value = saturationValue;
+                        console.log(`[PostFX] Set saturation uniform: ${saturationValue}`); // Add log
+                    }
+                } else if (e.target.id === 'materialRoughness') {
+                    // Roughness still needs to update the actual material
+                    this.updateMaterialProperties(); 
+                }
+                
+                // REMOVED: No longer call updateMaterialProperties for saturation
+                // this.updateMaterialProperties(); 
             });
         });
 
@@ -492,9 +529,15 @@ class Scene {
             
             // Apply loaded settings
             this.updateLights();
-            this.updateBustTransform(); // Call as class method
-            this.updateMaterialProperties(); // Call as class method
-            this.updateBustoSize(); // Apply combined scale last
+            this.updateBustTransform(); 
+            this.updateMaterialProperties(); // Still needed for roughness on load
+            // Apply loaded saturation to post-processing pass
+            if (settings.colorSaturation && this.hueSaturationPass) {
+                const loadedSaturation = parseFloat(settings.colorSaturation);
+                this.hueSaturationPass.uniforms['saturation'].value = loadedSaturation;
+                console.log(`[LoadSettings] Applied loaded saturation to postFX: ${loadedSaturation}`);
+            }
+            this.updateBustoSize(); 
         }
     }
 
@@ -674,27 +717,28 @@ class Scene {
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
+        requestAnimationFrame(this.animate.bind(this));
 
-        const now = performance.now();
-        const deltaTime = (now - this.lastTime) / 1000; // Convert ms to seconds
-        this.lastTime = now;
+        const deltaTime = this.clock.getDelta();
 
-        // Update OrbitControls
-        this.controls.update();
-
-        // Update orbital spheres
-        if (this.orbitalObjects.length > 0) {
-            this.updateOrbitalObjects();
+        // Update orbital controls
+        if (this.controls) {
+            this.controls.update();
         }
-        
+
         // Update head animation
-        if (this.bustoLoaded && this.headAnimation.active) {
-            this.updateHeadAnimation(deltaTime);
-        }
+        this.updateHeadAnimation(deltaTime);
+        
+        // Update orbital spheres animation
+        this.updateOrbitalSpheres(deltaTime);
 
-        // Render scene
-        this.renderer.render(this.scene, this.camera);
+        // Use composer to render instead of renderer directly
+        if (this.composer) {
+            this.composer.render(deltaTime);
+        } else {
+            // Fallback if composer failed
+            this.renderer.render(this.scene, this.camera); 
+        }
     }
 
     updateHeadAnimation(deltaTime) {
@@ -714,16 +758,19 @@ class Scene {
 
     resize() {
         console.log('Resizing scene...');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
         
-        // Update camera aspect ratio
-        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         
-        // Update renderer size
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(width, height);
+        if (this.composer) { // Resize composer as well
+            this.composer.setSize(width, height);
+        }
         
         // Update GROUP size and position on resize
-        if (this.bustoLoaded) { // Check if bustoGroup is ready
+        if (this.bustoLoaded) {
              this.updateBustoSize();
         }
     }
@@ -762,64 +809,25 @@ class Scene {
     }
 
     updateMaterialProperties() {
-        // Check the GROUP now
+        // ONLY responsible for roughness now
         if (!this.bustoGroup || !this.bustoGroup.children.length > 0) return; 
 
-        // Need to get sliders again OR pass them in OR store them on 'this'
-        const colorSaturationSlider = document.getElementById('colorSaturation');
+        // Get only the roughness slider
         const materialRoughnessSlider = document.getElementById('materialRoughness');
+        if (!materialRoughnessSlider) return; // Exit if slider not found
 
-        if (!colorSaturationSlider || !materialRoughnessSlider) return; // Guard clause
-        
-        const saturation = parseFloat(colorSaturationSlider.value);
         const roughness = parseFloat(materialRoughnessSlider.value);
-        
+        console.log(`[MaterialProps] Updating roughness to: ${roughness}`); // Log roughness update
+
         // Target the actual model INSIDE the group
         const actualBustModel = this.bustoGroup.children[0]; 
         actualBustModel.traverse((child) => { 
             if (child.isMesh && child.material) {
-                // If userData doesn't exist, initialize it
-                if (!child.material.userData) {
-                    child.material.userData = {};
-                }
-
-                // Store original color on first pass if not already stored
-                if (!child.material.userData.originalColor) {
-                    // Clone the initial color before any modifications
-                    child.material.userData.originalColor = child.material.color.clone();
-                    console.log(`[Saturation Debug] Stored originalColor for ${child.name || 'mesh'}: #${child.material.userData.originalColor.getHexString()}`); // LOG Original Store
-                }
-
-                // Update material properties
+                // Update material property
                 child.material.roughness = roughness;
-                
-                // --- Saturation Calculation Debug ---
-                console.log(`[Saturation Debug] Input saturation value: ${saturation}`); // LOG Input
+                child.material.needsUpdate = true; // Ensure material updates
 
-                // Update color saturation using HSL, starting from original color
-                const color = new THREE.Color();
-                const baseColor = child.material.userData.originalColor; // Use stored original
-                console.log(`[Saturation Debug] Using baseColor: #${baseColor.getHexString()}`); // LOG Base Color
-                
-                color.copy(baseColor);
-                const hsl = {};
-                color.getHSL(hsl);
-                console.log(`[Saturation Debug] Original HSL: h=${hsl.h.toFixed(3)}, s=${hsl.s.toFixed(3)}, l=${hsl.l.toFixed(3)}`); // LOG Original HSL
-                
-                // Clamp saturation to avoid inversion if base saturation is 0 or negative
-                // Apply saturation factor to the original saturation
-                const newSaturation = Math.max(0, hsl.s * saturation); 
-                console.log(`[Saturation Debug] Calculated newSaturation: ${newSaturation.toFixed(3)} (base sat ${hsl.s.toFixed(3)} * input ${saturation.toFixed(3)})`); // LOG New Saturation
-                
-                color.setHSL(hsl.h, newSaturation, hsl.l); 
-                console.log(`[Saturation Debug] Final HSL: h=${hsl.h.toFixed(3)}, s=${newSaturation.toFixed(3)}, l=${hsl.l.toFixed(3)}`); // LOG Final HSL
-                console.log(`[Saturation Debug] Final Color Applied: #${color.getHexString()}`); // LOG Final Color
-                // --- End Debug ---
-                
-                child.material.color = color;
-                
-                // Ensure material updates
-                child.material.needsUpdate = true;
+                // REMOVED Saturation logic from here
             }
         });
     }
